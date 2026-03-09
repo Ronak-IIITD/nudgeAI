@@ -23,6 +23,9 @@ export async function GET() {
         aiTone: true,
         quietHoursStart: true,
         quietHoursEnd: true,
+        browserNotificationsEnabled: true,
+        emailNotificationsEnabled: true,
+        inAppNotificationsEnabled: true,
         tier: true,
         createdAt: true,
       },
@@ -60,6 +63,9 @@ export async function PATCH(req: NextRequest) {
       aiTone: true,
       quietHoursStart: true,
       quietHoursEnd: true,
+      browserNotificationsEnabled: true,
+      emailNotificationsEnabled: true,
+      inAppNotificationsEnabled: true,
     };
 
     const data: Record<string, unknown> = {};
@@ -88,6 +94,9 @@ export async function PATCH(req: NextRequest) {
         aiTone: true,
         quietHoursStart: true,
         quietHoursEnd: true,
+        browserNotificationsEnabled: true,
+        emailNotificationsEnabled: true,
+        inAppNotificationsEnabled: true,
         tier: true,
         createdAt: true,
       },

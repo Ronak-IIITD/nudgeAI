@@ -25,6 +25,9 @@ model User {
   aiTone         String    @default("friendly") // friendly, motivational, direct
   quietHoursStart String?  // e.g. "22:00"
   quietHoursEnd   String?  // e.g. "07:00"
+  browserNotificationsEnabled Boolean @default(true)
+  emailNotificationsEnabled   Boolean @default(true)
+  inAppNotificationsEnabled   Boolean @default(true)
 
   // Subscription
   tier           String    @default("free") // free, pro, team

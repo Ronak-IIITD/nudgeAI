@@ -113,6 +113,9 @@ interface UserSettings {
   aiTone: string;
   quietHoursStart: string | null;
   quietHoursEnd: string | null;
+  browserNotificationsEnabled: boolean;
+  emailNotificationsEnabled: boolean;
+  inAppNotificationsEnabled: boolean;
   tier: string;
   createdAt: string;
 }
@@ -307,6 +310,13 @@ export default function SettingsPage() {
   const [inAppNotifs, setInAppNotifs] = useState(true);
   const [quietStart, setQuietStart] = useState("22:00");
   const [quietEnd, setQuietEnd] = useState("07:00");
+  const [browserPermission, setBrowserPermission] = useState<
+    NotificationPermission | "unsupported"
+  >(
+    typeof window === "undefined" || !("Notification" in window)
+      ? "unsupported"
+      : Notification.permission
+  );
 
   // Account
   const [currentPassword, setCurrentPassword] = useState("");
@@ -338,6 +348,9 @@ export default function SettingsPage() {
         setAiTone(data.aiTone as AiTone);
         setQuietStart(data.quietHoursStart || "22:00");
         setQuietEnd(data.quietHoursEnd || "07:00");
+        setBrowserPush(data.browserNotificationsEnabled);
+        setEmailNotifs(data.emailNotificationsEnabled);
+        setInAppNotifs(data.inAppNotificationsEnabled);
       }
     } catch {
       setToast({ message: "Failed to load settings", type: "error" });
@@ -352,15 +365,37 @@ export default function SettingsPage() {
 
   // Track changes
   useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setBrowserPermission("unsupported");
+      return;
+    }
+
+    setBrowserPermission(Notification.permission);
+  }, []);
+
+  useEffect(() => {
     if (!settings) return;
     const changed =
       name !== (settings.name || "") ||
       timezone !== settings.timezone ||
       aiTone !== settings.aiTone ||
+      browserPush !== settings.browserNotificationsEnabled ||
+      emailNotifs !== settings.emailNotificationsEnabled ||
+      inAppNotifs !== settings.inAppNotificationsEnabled ||
       quietStart !== (settings.quietHoursStart || "22:00") ||
       quietEnd !== (settings.quietHoursEnd || "07:00");
     setHasChanges(changed);
-  }, [name, timezone, aiTone, quietStart, quietEnd, settings]);
+  }, [
+    name,
+    timezone,
+    aiTone,
+    browserPush,
+    emailNotifs,
+    inAppNotifs,
+    quietStart,
+    quietEnd,
+    settings,
+  ]);
 
   // -------------------------------------------------------------------------
   // Save settings
@@ -369,6 +404,18 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      if (browserPush && browserPermission === "default" && "Notification" in window) {
+        const permission = await Notification.requestPermission();
+        setBrowserPermission(permission);
+        if (permission !== "granted") {
+          setBrowserPush(false);
+          setToast({
+            message: "Browser notifications were not allowed, so they stayed off.",
+            type: "info",
+          });
+        }
+      }
+
       const res = await fetch("/api/user/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -376,6 +423,10 @@ export default function SettingsPage() {
           name: name.trim() || null,
           timezone,
           aiTone,
+          browserNotificationsEnabled:
+            browserPush && browserPermission !== "denied" && browserPermission !== "unsupported",
+          emailNotificationsEnabled: emailNotifs,
+          inAppNotificationsEnabled: inAppNotifs,
           quietHoursStart: quietStart,
           quietHoursEnd: quietEnd,
         }),
@@ -384,6 +435,9 @@ export default function SettingsPage() {
       if (res.ok) {
         const updated = await res.json();
         setSettings(updated);
+        setBrowserPush(updated.browserNotificationsEnabled);
+        setEmailNotifs(updated.emailNotificationsEnabled);
+        setInAppNotifs(updated.inAppNotificationsEnabled);
         setHasChanges(false);
         setToast({ message: "Settings saved successfully!", type: "success" });
       } else {
@@ -608,7 +662,42 @@ export default function SettingsPage() {
           <div className="divide-y divide-[var(--border)]">
             <Toggle
               enabled={browserPush}
-              onChange={setBrowserPush}
+              onChange={async (enabled) => {
+                if (!enabled) {
+                  setBrowserPush(false);
+                  return;
+                }
+
+                if (browserPermission === "unsupported") {
+                  setToast({
+                    message: "This browser does not support native notifications.",
+                    type: "info",
+                  });
+                  return;
+                }
+
+                if (browserPermission === "denied") {
+                  setToast({
+                    message: "Browser notifications are blocked. Please allow them in your browser settings.",
+                    type: "info",
+                  });
+                  return;
+                }
+
+                if (browserPermission === "default" && "Notification" in window) {
+                  const permission = await Notification.requestPermission();
+                  setBrowserPermission(permission);
+                  if (permission !== "granted") {
+                    setToast({
+                      message: "Notification permission was not granted.",
+                      type: "info",
+                    });
+                    return;
+                  }
+                }
+
+                setBrowserPush(true);
+              }}
               label="Browser push notifications"
               description="Get real-time reminders in your browser"
             />
@@ -624,6 +713,12 @@ export default function SettingsPage() {
               label="In-app notifications"
               description="Show notifications within the NudgeAI dashboard"
             />
+          </div>
+
+          <div className="mt-3 rounded-xl bg-[var(--surface-hover)] px-4 py-3 text-xs text-[var(--muted)]">
+            Browser permission: {browserPermission === "unsupported"
+              ? "unsupported"
+              : browserPermission}
           </div>
 
           <div className="mt-6 pt-4 border-t border-[var(--border)]">
