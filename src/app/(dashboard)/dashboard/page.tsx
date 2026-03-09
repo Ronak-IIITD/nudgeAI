@@ -735,7 +735,7 @@ export default function DashboardPage() {
         </div>
 
         {/* AI Nudge Card */}
-        <div className="rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] p-5 shadow-sm text-white md:col-span-2 lg:col-span-1">
+        <div className="rounded-[1.75rem] border border-[rgba(139,111,90,0.18)] bg-[linear-gradient(180deg,rgba(141,113,90,0.96),rgba(198,170,147,0.96))] p-5 text-white shadow-[0_18px_42px_rgba(109,84,65,0.18)] md:col-span-2 lg:col-span-1">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={18} />
             <h3 className="font-semibold">Your Nudge</h3>

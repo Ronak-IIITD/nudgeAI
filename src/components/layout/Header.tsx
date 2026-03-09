@@ -28,27 +28,30 @@ export default function Header({ title }: { title: string }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <header className="flex items-center justify-between mb-8">
+    <header className="mb-8 flex items-start justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">{title}</h1>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
+          slow, steady progress
+        </p>
+        <h1 className="text-3xl font-semibold text-[var(--foreground)]" data-display="true">{title}</h1>
       </div>
 
       <div className="relative">
         <button
           onClick={() => setShowNotifications(!showNotifications)}
-          className="relative p-2 rounded-xl hover:bg-[var(--surface-hover)] border border-[var(--border)]"
+          className="relative rounded-2xl p-3 cozy-panel hover:bg-[var(--surface-hover)]"
           aria-label="Notifications"
         >
           <Bell size={20} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--accent)] text-white text-xs rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)] text-[10px] text-white shadow-[0_6px_14px_rgba(210,143,108,0.35)]">
               {unreadCount}
             </span>
           )}
         </button>
 
         {showNotifications && (
-          <div className="absolute right-0 top-12 w-80 bg-[var(--surface)] rounded-xl border border-[var(--border)] shadow-lg z-50 overflow-hidden">
+          <div className="absolute right-0 top-14 z-50 w-80 overflow-hidden rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,250,245,0.96)] shadow-[0_22px_50px_rgba(83,60,43,0.14)] backdrop-blur-xl">
             <div className="p-3 border-b border-[var(--border)]">
               <h3 className="font-semibold text-sm">Notifications</h3>
             </div>
@@ -62,7 +65,7 @@ export default function Header({ title }: { title: string }) {
                   <div
                     key={n.id}
                     className={`p-3 border-b border-[var(--border)] last:border-0 ${
-                      !n.read ? "bg-purple-50" : ""
+                      !n.read ? "bg-[rgba(239,211,191,0.28)]" : ""
                     }`}
                   >
                     <p className="text-sm font-medium">{n.title}</p>

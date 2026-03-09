@@ -15,9 +15,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="page-shell min-h-screen bg-[var(--background)]">
       <Sidebar />
-      <main className="lg:ml-64 min-h-screen p-6 lg:p-8">{children}</main>
+      <main className="relative min-h-screen p-6 lg:ml-72 lg:p-8 lg:pr-10">
+        <div className="mx-auto max-w-7xl">{children}</div>
+      </main>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fraunces } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "@/components/Providers";
@@ -12,6 +13,12 @@ const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -29,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>

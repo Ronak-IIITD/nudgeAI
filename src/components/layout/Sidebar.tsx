@@ -37,7 +37,7 @@ export default function Sidebar() {
       {/* Mobile menu button */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] shadow-sm"
+        className="fixed left-4 top-4 z-50 rounded-2xl p-2.5 lg:hidden cozy-panel"
         aria-label="Toggle menu"
       >
         {mobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -53,24 +53,29 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen w-64 bg-[var(--surface)] border-r border-[var(--border)] flex flex-col z-40 transform transition-transform duration-200 ${
+        className={`fixed top-0 left-0 z-40 flex h-screen w-72 flex-col border-r border-[var(--border)] bg-[rgba(255,250,245,0.72)] backdrop-blur-2xl transform transition-transform duration-200 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
         {/* Logo */}
-        <div className="p-6 pb-4">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[var(--primary)] flex items-center justify-center">
+        <div className="p-6 pb-5">
+          <Link href="/dashboard" className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--primary)]/95 shadow-[0_10px_24px_rgba(109,84,65,0.18)]">
               <span className="text-white font-bold text-sm">N</span>
             </div>
-            <span className="text-xl font-bold text-[var(--foreground)]">
-              NudgeAI
-            </span>
+            <div>
+              <span className="block text-xl font-semibold text-[var(--foreground)]" data-display="true">
+                NudgeAI
+              </span>
+              <span className="block text-xs text-[var(--muted)]">
+                cozy focus for real life
+              </span>
+            </div>
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 space-y-2 overflow-y-auto px-4">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -79,13 +84,15 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-[var(--primary)] text-white"
-                    : "text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
+                    ? "bg-[rgba(139,111,90,0.16)] text-[var(--foreground)] shadow-[inset_0_0_0_1px_rgba(139,111,90,0.12)]"
+                    : "text-[var(--muted)] hover:bg-[rgba(255,250,244,0.86)] hover:text-[var(--foreground)]"
                 }`}
               >
-                <Icon size={18} />
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${isActive ? "bg-[var(--primary)] text-white" : "bg-[rgba(255,250,244,0.9)] text-[var(--primary)]"}`}>
+                  <Icon size={17} />
+                </span>
                 {item.label}
               </Link>
             );
@@ -93,9 +100,9 @@ export default function Sidebar() {
         </nav>
 
         {/* User section */}
-        <div className="p-4 border-t border-[var(--border)]">
+        <div className="m-4 mt-3 rounded-[1.5rem] cozy-card p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-white font-medium text-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--primary-light)] text-sm font-medium text-white">
               {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
             </div>
             <div className="flex-1 min-w-0">
@@ -109,7 +116,7 @@ export default function Sidebar() {
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--muted)] hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+            className="flex w-full items-center gap-2 rounded-xl bg-[rgba(255,250,244,0.72)] px-3 py-2.5 text-sm text-[var(--muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
           >
             <LogOut size={16} />
             Sign out
