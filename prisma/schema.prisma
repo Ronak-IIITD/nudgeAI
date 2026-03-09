@@ -1,0 +1,236 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth Models ────────────────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String    @unique
+  emailVerified  DateTime?
+  image          String?
+  hashedPassword String?
+  timezone       String    @default("UTC")
+  onboarded      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // AI Preferences
+  aiTone         String    @default("friendly") // friendly, motivational, direct
+  quietHoursStart String?  // e.g. "22:00"
+  quietHoursEnd   String?  // e.g. "07:00"
+
+  // Subscription
+  tier           String    @default("free") // free, pro, team
+
+  // Relations
+  accounts       Account[]
+  sessions       Session[]
+  deadlines      Deadline[]
+  habits         Habit[]
+  habitCheckins  HabitCheckin[]
+  dailyGoals     DailyGoal[]
+  moodCheckins   MoodCheckin[]
+  focusSessions  FocusSession[]
+  notifications  Notification[]
+  nudges         Nudge[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Deadline Models ────────────────────────────────────
+
+model Deadline {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  dueDate     DateTime
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  priority    String    @default("medium") // low, medium, high, urgent
+  category    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Reminder settings
+  reminderIntervals Int[] @default([10080, 4320, 1440, 720, 120]) // minutes before deadline
+  snoozedCount      Int   @default(0)
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reminders Reminder[]
+  dailyGoals DailyGoal[]
+}
+
+model Reminder {
+  id          String   @id @default(cuid())
+  deadlineId  String
+  scheduledAt DateTime
+  sentAt      DateTime?
+  message     String?
+  dismissed   Boolean  @default(false)
+
+  deadline Deadline @relation(fields: [deadlineId], references: [id], onDelete: Cascade)
+}
+
+// ─── Habit Models ───────────────────────────────────────
+
+model Habit {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  category    String   @default("personal") // health, learning, work, personal, custom
+  frequency   String   @default("daily") // daily, weekdays, weekly, custom
+  customDays  Int[]    @default([]) // 0=Sun, 1=Mon, ..., 6=Sat
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Streak data
+  currentStreak Int @default(0)
+  longestStreak Int @default(0)
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checkins HabitCheckin[]
+}
+
+model HabitCheckin {
+  id        String   @id @default(cuid())
+  habitId   String
+  userId    String
+  date      DateTime // date only (normalized to midnight UTC)
+  note      String?
+  createdAt DateTime @default(now())
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+}
+
+// ─── Daily Goals ────────────────────────────────────────
+
+model DailyGoal {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  date        DateTime  // date normalized to midnight
+  order       Int       @default(0)
+  deadlineId  String?   // optional link to a deadline
+
+  // Evening win log
+  winNote     String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deadline Deadline? @relation(fields: [deadlineId], references: [id], onDelete: SetNull)
+}
+
+// ─── Mood Check-ins ─────────────────────────────────────
+
+model MoodCheckin {
+  id          String   @id @default(cuid())
+  userId      String
+  mood        Int      // 1=Exhausted, 2=Low, 3=Okay, 4=Good, 5=Energized
+  energyLevel Int?     // 1-5 optional
+  note        String?
+  date        DateTime
+  timeOfDay   String   @default("morning") // morning, afternoon, evening
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Focus Sessions ─────────────────────────────────────
+
+model FocusSession {
+  id          String    @id @default(cuid())
+  userId      String
+  mode        String    @default("pomodoro") // pomodoro, custom, flow
+  workMinutes Int       @default(25)
+  breakMinutes Int      @default(5)
+  rounds      Int       @default(4)
+  currentRound Int      @default(0)
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  totalFocusMinutes Int @default(0)
+  taskTitle   String?   // optional link to what they're working on
+  completed   Boolean   @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Notifications ──────────────────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String    // deadline, habit, goal, mood, focus, system
+  title     String
+  message   String
+  read      Boolean   @default(false)
+  actionUrl String?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── AI Nudges (logged for analytics) ───────────────────
+
+model Nudge {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // reminder, encouragement, insight, celebration
+  message   String
+  context   String?  // JSON blob of context used to generate
+  actedUpon Boolean  @default(false)
+  dismissed Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

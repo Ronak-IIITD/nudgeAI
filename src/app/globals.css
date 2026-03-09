@@ -3,21 +3,77 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #faf9f7;
+  --foreground: #1a1a2e;
+  --primary: #6c5ce7;
+  --primary-light: #a29bfe;
+  --primary-dark: #4834d4;
+  --accent: #fd79a8;
+  --accent-light: #fab1a0;
+  --success: #00b894;
+  --warning: #fdcb6e;
+  --danger: #e17055;
+  --surface: #ffffff;
+  --surface-hover: #f8f7ff;
+  --border: #e8e6f0;
+  --muted: #636e72;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Confetti animation for celebrations */
+@keyframes confetti-fall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+.confetti-piece {
+  animation: confetti-fall 3s ease-in-out forwards;
+}
+
+/* Streak fire animation */
+@keyframes streak-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.streak-fire {
+  animation: streak-pulse 1.5s ease-in-out infinite;
+}
+
+/* Focus mode overlay */
+.focus-overlay {
+  backdrop-filter: blur(8px);
+  background: rgba(26, 26, 46, 0.85);
 }
 
 @layer utilities {
