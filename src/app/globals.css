@@ -188,6 +188,27 @@ h3,
   }
 }
 
+@keyframes sheen-slide {
+  from {
+    transform: translateX(-120%);
+  }
+
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes soft-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(210, 143, 108, 0.12);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba(210, 143, 108, 0);
+  }
+}
+
 @layer utilities {
   .page-shell {
     position: relative;
@@ -243,6 +264,12 @@ h3,
   .cozy-button:hover {
     filter: saturate(1.02);
     transform: translateY(-1px);
+  }
+
+  .cozy-button:active,
+  .cozy-button-soft:active,
+  .cozy-outline:active {
+    transform: translateY(0);
   }
 
   .cozy-button-soft {
@@ -459,6 +486,72 @@ h3,
     background: rgba(255, 250, 244, 0.78);
     border: 1px solid rgba(139, 111, 90, 0.1);
     padding: 1rem;
+  }
+
+  .interactive-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .interactive-card::after {
+    content: "";
+    position: absolute;
+    inset: -40% auto -40% -30%;
+    width: 40%;
+    transform: translateX(-140%) rotate(18deg);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .interactive-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 48px rgba(84, 60, 43, 0.12);
+    border-color: rgba(139, 111, 90, 0.22);
+  }
+
+  .interactive-card:hover::after {
+    opacity: 1;
+    animation: sheen-slide 1s ease;
+  }
+
+  .loading-surface {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(255, 249, 243, 0.88), rgba(246, 233, 221, 0.8));
+  }
+
+  .loading-surface::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0));
+    transform: translateX(-100%);
+    animation: sheen-slide 1.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .empty-state-shell {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(255, 252, 248, 0.96), rgba(245, 234, 224, 0.92));
+    border: 1px solid rgba(139, 111, 90, 0.16);
+    box-shadow: 0 24px 58px rgba(84, 60, 43, 0.08);
+  }
+
+  .empty-state-shell::before {
+    content: "";
+    position: absolute;
+    inset: auto -2rem -4rem auto;
+    width: 10rem;
+    height: 10rem;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(210, 143, 108, 0.14), rgba(210, 143, 108, 0));
+    pointer-events: none;
+  }
+
+  .pulse-dot-soft {
+    animation: soft-breathe 2.4s ease-in-out infinite;
   }
 
   .insight-gradient {

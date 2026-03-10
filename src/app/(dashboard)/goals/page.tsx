@@ -433,7 +433,7 @@ export default function GoalsPage() {
           </div>
         </div>
 
-        <div className="soft-card rounded-[1.7rem] p-5">
+        <div className="soft-card interactive-card rounded-[1.7rem] p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">focus note</p>
           <p className="mt-3 text-2xl font-semibold text-[var(--foreground)]" data-display="true">
             Finishing three meaningful things is often better than listing ten.
@@ -452,7 +452,7 @@ export default function GoalsPage() {
       </section>
 
       <section className="mb-6">
-        <div className="soft-card rounded-[1.8rem] p-5">
+        <div className="soft-card interactive-card rounded-[1.8rem] p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Trophy size={18} className="text-[var(--warning)]" />
@@ -472,8 +472,8 @@ export default function GoalsPage() {
             <div className="flex items-end gap-2 h-20">
               {Array.from({ length: 7 }).map((_, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full bg-[var(--border)] rounded-t animate-pulse" style={{ height: 24 + i * 4 }} />
-                  <div className="h-3 w-6 bg-[var(--border)] rounded animate-pulse" />
+                  <div className="loading-surface w-full rounded-t animate-pulse" style={{ height: 24 + i * 4 }} />
+                  <div className="loading-surface h-3 w-6 rounded animate-pulse" />
                 </div>
               ))}
             </div>
@@ -623,16 +623,15 @@ export default function GoalsPage() {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-12 bg-[var(--border)] rounded-xl animate-pulse"
+                  className="loading-surface h-12 rounded-xl animate-pulse"
                 />
               ))}
             </div>
           ) : goals.length === 0 && !newGoalTitle ? (
-            /* Empty state */
-            <div className="text-center py-10">
+            <div className="empty-state-shell rounded-[1.8rem] py-10 text-center">
               <Target
                 size={48}
-                className="mx-auto text-[var(--primary-light)] mb-3"
+                className="pulse-dot-soft mx-auto mb-3 text-[var(--primary-light)]"
               />
               <h4 className="text-base font-semibold text-[var(--foreground)] mb-1">
                 No goals set for this day
@@ -655,7 +654,7 @@ export default function GoalsPage() {
               {goals.map((goal, index) => (
                 <li
                   key={goal.id}
-                  className="flex items-center gap-2 p-3 rounded-xl border border-[var(--border)] hover:border-[var(--primary-light)] hover:bg-[var(--surface-hover)] transition-colors group"
+                  className="interactive-card flex items-center gap-2 rounded-xl border border-[var(--border)] p-3 transition-colors group hover:border-[var(--primary-light)] hover:bg-[var(--surface-hover)]"
                 >
                   {/* Drag handle (visual) */}
                   <GripVertical

@@ -346,7 +346,7 @@ export default async function LandingPage() {
             return (
               <div
                 key={feature.title}
-                className="cozy-card feature-tile rounded-[1.8rem] p-6 stagger-rise"
+                className="cozy-card feature-tile interactive-card rounded-[1.8rem] p-6 stagger-rise"
                 style={{ animationDelay: `${index * 70}ms` }}
               >
                 <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${feature.tone}`}>
@@ -386,7 +386,7 @@ export default async function LandingPage() {
             {examples.map(([time, msg], index) => (
               <div
                 key={time}
-                className="cozy-card flex items-start gap-4 rounded-[1.6rem] p-5 stagger-rise"
+                className="cozy-card interactive-card flex items-start gap-4 rounded-[1.6rem] p-5 stagger-rise"
                 style={{ animationDelay: `${index * 80}ms` }}
               >
                 <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(180deg,var(--primary),var(--primary-dark))] text-white shadow-[0_14px_30px_rgba(109,84,65,0.2)]">
@@ -417,7 +417,7 @@ export default async function LandingPage() {
             {pricing.map((plan) => (
               <div
                 key={plan.tier}
-                className={`relative rounded-[1.8rem] p-6 ${
+                className={`interactive-card relative rounded-[1.8rem] p-6 ${
                   plan.featured
                     ? "border border-[rgba(139,111,90,0.3)] bg-[linear-gradient(180deg,rgba(255,248,241,0.98),rgba(244,232,220,0.92))] shadow-[0_24px_60px_rgba(109,84,65,0.16)]"
                     : "cozy-card"

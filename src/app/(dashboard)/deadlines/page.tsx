@@ -299,11 +299,13 @@ export default function DeadlinesPage() {
       {/* Content */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+          <div className="loading-surface flex h-20 w-full max-w-md items-center justify-center rounded-[1.7rem] border border-[var(--border)]">
+            <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+          </div>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="soft-card-strong flex flex-col items-center justify-center rounded-[2rem] py-20 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)]">
+        <div className="empty-state-shell flex flex-col items-center justify-center rounded-[2rem] py-20 text-center">
+          <div className="pulse-dot-soft mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)]">
             <Calendar size={28} className="text-[var(--muted)]" />
           </div>
           <h3 className="mb-1 text-lg font-semibold text-[var(--foreground)]">
@@ -339,7 +341,7 @@ export default function DeadlinesPage() {
             return (
               <div
                 key={deadline.id}
-                className={`soft-card rounded-[1.6rem] p-4 transition-colors hover:border-[var(--primary-light)] sm:p-5 ${
+                className={`soft-card interactive-card rounded-[1.6rem] p-4 transition-colors hover:border-[var(--primary-light)] sm:p-5 ${
                   deadline.completed ? "opacity-60" : ""
                 }`}
               >

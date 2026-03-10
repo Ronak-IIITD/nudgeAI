@@ -310,7 +310,7 @@ export default function OnboardingPage() {
                 up in under 3 minutes.
               </p>
 
-              <div className="text-left space-y-4 mb-10 bg-[var(--surface-hover)] rounded-2xl p-6">
+                <div className="text-left space-y-4 mb-10 soft-card interactive-card rounded-2xl p-6">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Target size={16} className="text-[var(--primary)]" />
@@ -384,7 +384,7 @@ export default function OnboardingPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                    className="soft-input px-4 py-3 text-sm"
                     placeholder="Your name"
                   />
                 </div>
@@ -397,7 +397,7 @@ export default function OnboardingPage() {
                   <select
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent appearance-none cursor-pointer"
+                    className="soft-input appearance-none cursor-pointer px-4 py-3 text-sm"
                   >
                     {TIMEZONES.map((tz) => (
                       <option key={tz} value={tz}>
@@ -419,7 +419,7 @@ export default function OnboardingPage() {
                         <button
                           key={goal.id}
                           onClick={() => toggleGoal(goal.id)}
-                          className={`flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                            className={`interactive-card flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
                             selected
                               ? "border-[var(--primary)] bg-[var(--surface-hover)]"
                               : "border-[var(--border)] hover:border-[var(--primary-light)]"
@@ -485,7 +485,7 @@ export default function OnboardingPage() {
                     type="text"
                     value={deadlineTitle}
                     onChange={(e) => setDeadlineTitle(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                    className="soft-input px-4 py-3 text-sm"
                     placeholder="e.g., Finish project report"
                   />
                 </div>
@@ -510,7 +510,7 @@ export default function OnboardingPage() {
                     value={deadlineDate}
                     onChange={(e) => setDeadlineDate(e.target.value)}
                     min={new Date().toISOString().split("T")[0]}
-                    className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                    className="soft-input px-4 py-3 text-sm"
                   />
                 </div>
               </div>
@@ -547,7 +547,7 @@ export default function OnboardingPage() {
                       setSelectedHabit(habit.id);
                       setCustomHabit("");
                     }}
-                    className={`p-4 rounded-xl border-2 text-left transition-all ${
+                    className={`interactive-card p-4 rounded-xl border-2 text-left transition-all ${
                       selectedHabit === habit.id
                         ? "border-[var(--success)] bg-[var(--success)]/5"
                         : "border-[var(--border)] hover:border-[var(--success)]/50"
@@ -588,7 +588,7 @@ export default function OnboardingPage() {
                     type="text"
                     value={customHabit}
                     onChange={(e) => setCustomHabit(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--success)] focus:border-transparent"
+                    className="soft-input px-3 py-2 text-sm"
                     placeholder="e.g., Walk 10,000 steps"
                     autoFocus
                   />
@@ -619,7 +619,7 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
-              <div className="space-y-1 bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 mb-6">
+              <div className="soft-card interactive-card space-y-1 rounded-2xl p-4 mb-6">
                 {/* Push toggle */}
                 <div className="flex items-center justify-between py-3">
                   <div className="flex items-center gap-3">
@@ -701,7 +701,7 @@ export default function OnboardingPage() {
                       <button
                         key={slot.id}
                         onClick={() => toggleReminderTime(slot.id)}
-                        className={`p-4 rounded-xl border-2 text-center transition-all ${
+                        className={`interactive-card p-4 rounded-xl border-2 text-center transition-all ${
                           selected
                             ? "border-[var(--primary)] bg-[var(--surface-hover)]"
                             : "border-[var(--border)] hover:border-[var(--primary-light)]"

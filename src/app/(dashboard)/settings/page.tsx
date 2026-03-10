@@ -525,7 +525,7 @@ export default function SettingsPage() {
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm animate-pulse"
+              className="soft-card loading-surface rounded-2xl p-6 animate-pulse"
             >
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-9 h-9 rounded-xl bg-[var(--border)]" />
@@ -599,7 +599,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="soft-card rounded-[1.8rem] p-5">
+        <div className="soft-card interactive-card rounded-[1.8rem] p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">save status</p>
           <p className="mt-3 text-2xl font-semibold text-[var(--foreground)]" data-display="true">
             Keep your setup intentional and easy to revisit.
@@ -678,7 +678,7 @@ export default function SettingsPage() {
               <button
                 key={tone.value}
                 onClick={() => setAiTone(tone.value)}
-                className={`text-left p-4 rounded-xl border-2 transition-all ${
+                className={`interactive-card text-left p-4 rounded-xl border-2 transition-all ${
                   aiTone === tone.value
                     ? "border-[var(--primary)] bg-[var(--surface-hover)] ring-1 ring-[var(--primary-light)]"
                     : "border-[var(--border)] hover:border-[var(--primary-light)] hover:bg-[var(--surface-hover)]"
@@ -998,7 +998,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center gap-2 px-4 py-1.5 text-sm font-medium bg-[var(--primary)] text-white rounded-xl hover:opacity-90 disabled:opacity-50"
+                  className="cozy-button flex items-center gap-2 rounded-xl px-4 py-1.5 text-sm font-medium disabled:opacity-50"
                 >
                   {saving ? (
                     <Loader2 size={14} className="animate-spin" />

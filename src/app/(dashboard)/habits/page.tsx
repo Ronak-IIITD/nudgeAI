@@ -493,7 +493,7 @@ export default function HabitsPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="soft-card rounded-[1.7rem] p-5 animate-pulse"
+              className="soft-card loading-surface rounded-[1.7rem] p-5 animate-pulse"
             >
               <div className="h-5 w-1/3 bg-[var(--border)] rounded mb-3" />
               <div className="h-4 w-1/2 bg-[var(--border)] rounded mb-4" />
@@ -502,8 +502,8 @@ export default function HabitsPage() {
           ))}
         </div>
       ) : filteredHabits.length === 0 ? (
-        <div className="soft-card-strong flex flex-col items-center justify-center rounded-[2rem] py-20 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--primary-light)]/20">
+        <div className="empty-state-shell flex flex-col items-center justify-center rounded-[2rem] py-20 text-center">
+          <div className="pulse-dot-soft mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--primary-light)]/20">
             <Sparkles size={32} className="text-[var(--primary)]" />
           </div>
           <h2 className="mb-2 text-xl font-semibold text-[var(--foreground)]">
@@ -537,7 +537,7 @@ export default function HabitsPage() {
             return (
               <div
                 key={habit.id}
-                className="soft-card rounded-[1.7rem] p-5 flex flex-col gap-4 transition-shadow hover:shadow-md"
+                className="soft-card interactive-card rounded-[1.7rem] p-5 flex flex-col gap-4 transition-shadow hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
