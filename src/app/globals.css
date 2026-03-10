@@ -466,6 +466,28 @@ h3,
     box-shadow: 0 22px 60px rgba(84, 60, 43, 0.16);
   }
 
+  .auth-shell {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at top left, rgba(210, 143, 108, 0.18), transparent 26%),
+      radial-gradient(circle at bottom right, rgba(85, 107, 123, 0.14), transparent 24%);
+    pointer-events: none;
+  }
+
+  .auth-card {
+    background: linear-gradient(180deg, rgba(255, 252, 248, 0.96), rgba(247, 236, 225, 0.88));
+    border: 1px solid rgba(139, 111, 90, 0.14);
+    box-shadow: 0 26px 70px rgba(84, 60, 43, 0.1);
+    backdrop-filter: blur(18px);
+  }
+
   .gradient-stroke {
     background-image: linear-gradient(120deg, var(--primary-dark), var(--accent), var(--secondary));
     background-size: 180% 180%;

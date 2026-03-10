@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -59,22 +60,52 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
+    <div className="auth-shell page-shell min-h-screen bg-[var(--background)] px-4 py-10">
+      <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl items-center justify-center">
+        <div className="grid w-full gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+          <div className="hidden lg:block">
+            <div className="section-label">
+              <span className="status-dot" />
+              create your workspace
+            </div>
+            <h1 className="mt-6 text-5xl font-semibold text-[var(--foreground)]" data-display="true">
+              Start a productivity system that feels warm, human, and usable.
+            </h1>
+            <p className="mt-5 max-w-xl text-lg leading-8 text-[var(--muted)]">
+              Build habits, manage deadlines, and get thoughtful AI support without turning your day into noise.
+            </p>
+
+            <div className="mt-8 space-y-3">
+              {[
+                "Track deadlines, focus, and goals in one place.",
+                "Set up your first habits in just a few guided steps.",
+                "Get personalized nudges that match your rhythm.",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3 rounded-2xl bg-[rgba(255,250,244,0.7)] px-4 py-3 text-sm text-[var(--foreground)]">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[rgba(123,154,123,0.14)] text-[var(--success)]">
+                    <Sparkles size={15} />
+                  </div>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mx-auto w-full max-w-md">
         <div className="text-center mb-8">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[1.5rem] bg-[linear-gradient(180deg,var(--primary),var(--primary-dark))] text-white shadow-[0_18px_36px_rgba(109,84,65,0.2)]">
+            <Sparkles size={22} />
+          </div>
           <h1 className="text-3xl font-bold text-[var(--primary)]">NudgeAI</h1>
           <p className="text-[var(--muted)] mt-2">
             Your friendly AI productivity companion
           </p>
         </div>
 
-        {/* Card */}
-        <div className="bg-[var(--surface)] rounded-2xl shadow-sm border border-[var(--border)] p-8">
-          {/* Google Sign Up */}
+        <div className="auth-card rounded-[2rem] p-8">
           <button
             onClick={() => signIn("google", { callbackUrl: "/onboarding" })}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-[var(--border)] rounded-xl hover:bg-[var(--surface-hover)] font-medium"
+            className="w-full flex items-center justify-center gap-3 rounded-xl border border-[var(--border)] bg-[rgba(255,250,244,0.76)] px-4 py-3 font-medium hover:bg-[var(--surface-hover)]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -102,13 +133,12 @@ export default function RegisterPage() {
               <div className="w-full border-t border-[var(--border)]" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-[var(--surface)] text-[var(--muted)]">
+              <span className="bg-[rgba(250,240,230,0.95)] px-4 text-[var(--muted)]">
                 or create an account
               </span>
             </div>
           </div>
 
-          {/* Registration Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
@@ -128,7 +158,7 @@ export default function RegisterPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--background)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                className="soft-input px-4 py-3"
                 placeholder="What should we call you?"
                 required
               />
@@ -146,7 +176,7 @@ export default function RegisterPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--background)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                className="soft-input px-4 py-3"
                 placeholder="you@example.com"
                 required
               />
@@ -164,7 +194,7 @@ export default function RegisterPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--background)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                className="soft-input px-4 py-3"
                 placeholder="At least 8 characters"
                 minLength={8}
                 required
@@ -174,9 +204,10 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cozy-button flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-medium disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Creating account..." : "Create Account"}
+              {!loading && <ArrowRight size={16} />}
             </button>
           </form>
 
@@ -194,6 +225,8 @@ export default function RegisterPage() {
         <p className="text-center text-xs text-[var(--muted)] mt-4">
           By signing up, you agree to our Terms of Service and Privacy Policy.
         </p>
+          </div>
+        </div>
       </div>
     </div>
   );

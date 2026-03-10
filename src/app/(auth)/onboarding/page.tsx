@@ -742,8 +742,7 @@ export default function OnboardingPage() {
   // -------------------------------------------------------------------------
 
   return (
-    <div className="min-h-screen bg-[var(--background)] flex flex-col">
-      {/* Header */}
+    <div className="auth-shell page-shell min-h-screen bg-[var(--background)] flex flex-col">
       <div className="px-6 pt-6 pb-2">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <h1 className="text-lg font-bold text-[var(--primary)]">NudgeAI</h1>
@@ -758,16 +757,23 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Progress */}
       <div className="px-6 pt-4">
         <StepIndicator current={step} total={STEP_COUNT} />
       </div>
 
-      {/* Step Content */}
-      <div className="flex-1 px-6 py-4 overflow-y-auto">{renderStep()}</div>
+      <div className="px-6 pt-2">
+        <div className="soft-card mx-auto max-w-lg rounded-[1.8rem] px-5 py-4 text-sm text-[var(--muted)] sm:px-6">
+          <span className="font-semibold text-[var(--foreground)]">Setup flow:</span> profile, goals, first deadline, first habit, and reminders - all in a few calm steps.
+        </div>
+      </div>
 
-      {/* Navigation Footer */}
-      <div className="px-6 py-6 border-t border-[var(--border)] bg-[var(--surface)]">
+      <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="mx-auto max-w-2xl rounded-[2.2rem] auth-card px-6 py-8 sm:px-8">
+          {renderStep()}
+        </div>
+      </div>
+
+      <div className="border-t border-[var(--border)] bg-[rgba(255,250,244,0.82)] px-6 py-6 backdrop-blur-xl">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           {step > 0 ? (
             <button
@@ -784,7 +790,7 @@ export default function OnboardingPage() {
           {step < STEP_COUNT - 1 ? (
             <button
               onClick={goNext}
-              className="flex items-center gap-1.5 px-6 py-2.5 text-sm font-medium text-white bg-[var(--primary)] rounded-xl hover:opacity-90 shadow-sm"
+              className="cozy-button flex items-center gap-1.5 rounded-xl px-6 py-2.5 text-sm font-medium"
             >
               Continue
               <ChevronRight size={16} />
@@ -793,7 +799,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleComplete}
               disabled={submitting}
-              className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] rounded-xl hover:opacity-90 shadow-lg disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-[linear-gradient(180deg,var(--primary),var(--accent))] px-6 py-2.5 text-sm font-medium text-white shadow-lg disabled:opacity-50"
             >
               {submitting ? (
                 <>

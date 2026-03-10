@@ -184,7 +184,7 @@ function ConfirmModal({
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onCancel}
       />
-      <div className="relative bg-[var(--surface)] rounded-2xl shadow-xl border border-[var(--border)] max-w-md w-full p-6 animate-scale-in">
+      <div className="soft-card-strong relative max-w-md w-full rounded-[1.8rem] p-6 animate-scale-in">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
             <AlertTriangle size={20} className="text-[var(--danger)]" />
@@ -231,7 +231,7 @@ function Section({
   return (
     <section
       id={id}
-      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm"
+      className="soft-card rounded-[1.8rem] p-6"
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="w-9 h-9 rounded-xl bg-[var(--surface-hover)] flex items-center justify-center">
@@ -570,8 +570,54 @@ export default function SettingsPage() {
         />
       )}
 
+      <section className="mx-auto mb-6 grid max-w-3xl gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="glass-strong rounded-[2rem] p-6 sm:p-7">
+          <div className="section-label">
+            <span className="status-dot" />
+            your preferences
+          </div>
+          <h2 className="mt-5 text-3xl font-semibold text-[var(--foreground)] sm:text-4xl" data-display="true">
+            Shape the app around your pace, tone, and boundaries.
+          </h2>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
+            Fine-tune how NudgeAI sounds, when it nudges you, and how your account feels day to day.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Plan</p>
+              <p className="mt-2 text-lg font-semibold capitalize text-[var(--foreground)]">{settings?.tier || "free"}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Timezone</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--foreground)]">{timezone.split("/").pop()?.replace(/_/g, " ") || timezone}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">AI tone</p>
+              <p className="mt-2 text-lg font-semibold capitalize text-[var(--foreground)]">{aiTone}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="soft-card rounded-[1.8rem] p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">save status</p>
+          <p className="mt-3 text-2xl font-semibold text-[var(--foreground)]" data-display="true">
+            Keep your setup intentional and easy to revisit.
+          </p>
+          <div className="mt-6 space-y-3 text-sm">
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">Changes pending</span>
+              <span className="font-semibold text-[var(--foreground)]">{hasChanges ? "Yes" : "No"}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">Notifications</span>
+              <span className="font-semibold text-[var(--foreground)]">{browserPush || emailNotifs || inAppNotifs ? "Active" : "Quiet"}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="max-w-3xl mx-auto space-y-6 pb-24">
-        {/* ──────────────── Profile ──────────────── */}
         <Section id="profile" icon={User} title="Profile">
           <div className="space-y-4">
             <div>
@@ -582,7 +628,7 @@ export default function SettingsPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                className="soft-input px-4 py-2.5 text-sm"
                 placeholder="Your name"
               />
             </div>
@@ -610,7 +656,7 @@ export default function SettingsPage() {
               <select
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent appearance-none cursor-pointer"
+                className="soft-input appearance-none cursor-pointer px-4 py-2.5 text-sm"
               >
                 {TIMEZONES.map((tz) => (
                   <option key={tz} value={tz}>
@@ -622,7 +668,6 @@ export default function SettingsPage() {
           </div>
         </Section>
 
-        {/* ──────────────── AI Personality ──────────────── */}
         <Section id="ai-personality" icon={Sparkles} title="AI Personality">
           <p className="text-sm text-[var(--muted)] mb-4">
             Choose how NudgeAI communicates with you. This affects reminders,
@@ -657,7 +702,6 @@ export default function SettingsPage() {
           </div>
         </Section>
 
-        {/* ──────────────── Notifications ──────────────── */}
         <Section id="notifications" icon={Bell} title="Notifications">
           <div className="divide-y divide-[var(--border)]">
             <Toggle
@@ -740,7 +784,7 @@ export default function SettingsPage() {
                   type="time"
                   value={quietStart}
                   onChange={(e) => setQuietStart(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                  className="soft-input px-3 py-2 text-sm"
                 />
               </div>
               <span className="text-[var(--muted)] mt-5">to</span>
@@ -752,14 +796,13 @@ export default function SettingsPage() {
                   type="time"
                   value={quietEnd}
                   onChange={(e) => setQuietEnd(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                  className="soft-input px-3 py-2 text-sm"
                 />
               </div>
             </div>
           </div>
         </Section>
 
-        {/* ──────────────── Subscription ──────────────── */}
         <Section id="subscription" icon={CreditCard} title="Subscription">
           <div className="flex items-center gap-3 mb-6">
             <div
@@ -850,7 +893,6 @@ export default function SettingsPage() {
           )}
         </Section>
 
-        {/* ──────────────── Account ──────────────── */}
         <Section id="account" icon={Shield} title="Account">
           <form onSubmit={handlePasswordChange} className="space-y-4">
             <h4 className="text-sm font-semibold text-[var(--foreground)]">
@@ -863,7 +905,7 @@ export default function SettingsPage() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Current password"
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent pr-10"
+                className="soft-input pr-10 px-4 py-2.5 text-sm"
               />
               <button
                 type="button"
@@ -879,7 +921,7 @@ export default function SettingsPage() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="New password (min 8 characters)"
-              className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+              className="soft-input px-4 py-2.5 text-sm"
             />
 
             <input
@@ -887,13 +929,13 @@ export default function SettingsPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm new password"
-              className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+              className="soft-input px-4 py-2.5 text-sm"
             />
 
             <button
               type="submit"
               disabled={!currentPassword || !newPassword || !confirmPassword}
-              className="px-5 py-2.5 text-sm font-medium text-white bg-[var(--primary)] rounded-xl hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="cozy-button px-5 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40"
             >
               Update Password
             </button>
@@ -917,28 +959,26 @@ export default function SettingsPage() {
           </div>
         </Section>
 
-        {/* ──────────────── Data ──────────────── */}
         <Section id="data" icon={Download} title="Data">
           <p className="text-sm text-[var(--muted)] mb-4">
             Download a copy of all your NudgeAI data in JSON format. This
             includes your profile, deadlines, habits, goals, mood check-ins, and
             focus sessions.
           </p>
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-[var(--primary)] border border-[var(--primary)] rounded-xl hover:bg-[var(--surface-hover)]"
-          >
-            <Download size={16} />
-            Export My Data
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 rounded-xl border border-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary)] hover:bg-[var(--surface-hover)]"
+            >
+              <Download size={16} />
+              Export My Data
           </button>
         </Section>
       </div>
 
-      {/* ──────────────── Floating Save Bar ──────────────── */}
       {hasChanges && (
         <div className="fixed bottom-0 left-0 right-0 lg:left-64 z-40">
           <div className="mx-auto max-w-3xl px-6 py-4">
-            <div className="flex items-center justify-between bg-[var(--foreground)] text-white rounded-2xl px-6 py-3 shadow-xl">
+            <div className="insight-gradient flex items-center justify-between rounded-2xl px-6 py-3 text-white shadow-xl">
               <p className="text-sm">You have unsaved changes</p>
               <div className="flex items-center gap-3">
                 <button

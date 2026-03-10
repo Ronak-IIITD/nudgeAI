@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,22 +39,52 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
+    <div className="auth-shell page-shell min-h-screen bg-[var(--background)] px-4 py-10">
+      <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl items-center justify-center">
+        <div className="grid w-full gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+          <div className="hidden lg:block">
+            <div className="section-label">
+              <span className="status-dot" />
+              welcome back
+            </div>
+            <h1 className="mt-6 text-5xl font-semibold text-[var(--foreground)]" data-display="true">
+              Return to a calmer, clearer way to work.
+            </h1>
+            <p className="mt-5 max-w-xl text-lg leading-8 text-[var(--muted)]">
+              Pick up your habits, goals, focus sessions, and nudges right where you left them.
+            </p>
+
+            <div className="mt-8 space-y-3">
+              {[
+                "Review today&apos;s priorities in one soft workspace.",
+                "Get warmer reminders without the noisy feeling.",
+                "Track progress across focus, goals, and routines.",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3 rounded-2xl bg-[rgba(255,250,244,0.7)] px-4 py-3 text-sm text-[var(--foreground)]">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[rgba(210,143,108,0.14)] text-[var(--accent)]">
+                    <Sparkles size={15} />
+                  </div>
+                  <span dangerouslySetInnerHTML={{ __html: item }} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mx-auto w-full max-w-md">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[1.5rem] bg-[linear-gradient(180deg,var(--primary),var(--primary-dark))] text-white shadow-[0_18px_36px_rgba(109,84,65,0.2)]">
+            <Sparkles size={22} />
+          </div>
           <h1 className="text-3xl font-bold text-[var(--primary)]">NudgeAI</h1>
-          <p className="text-[var(--muted)] mt-2">
-            Welcome back! Let&apos;s get productive.
+          <p className="mt-2 text-[var(--muted)]">
+            Welcome back. Let&apos;s get productive with a little more calm.
           </p>
         </div>
 
-        {/* Card */}
-        <div className="bg-[var(--surface)] rounded-2xl shadow-sm border border-[var(--border)] p-8">
-          {/* Google Sign In */}
+        <div className="auth-card rounded-[2rem] p-8">
           <button
             onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-[var(--border)] rounded-xl hover:bg-[var(--surface-hover)] font-medium"
+            className="w-full flex items-center justify-center gap-3 rounded-xl border border-[var(--border)] bg-[rgba(255,250,244,0.76)] px-4 py-3 font-medium hover:bg-[var(--surface-hover)]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -81,13 +112,12 @@ export default function LoginPage() {
               <div className="w-full border-t border-[var(--border)]" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-[var(--surface)] text-[var(--muted)]">
+              <span className="bg-[rgba(250,240,230,0.95)] px-4 text-[var(--muted)]">
                 or sign in with email
               </span>
             </div>
           </div>
 
-          {/* Email/Password Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
@@ -107,7 +137,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--background)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                className="soft-input px-4 py-3"
                 placeholder="you@example.com"
                 required
               />
@@ -125,7 +155,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--background)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                className="soft-input px-4 py-3"
                 placeholder="Enter your password"
                 required
               />
@@ -134,9 +164,10 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cozy-button flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-medium disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Signing in..." : "Sign In"}
+              {!loading && <ArrowRight size={16} />}
             </button>
           </form>
 
@@ -149,6 +180,8 @@ export default function LoginPage() {
               Sign up free
             </Link>
           </p>
+        </div>
+          </div>
         </div>
       </div>
     </div>

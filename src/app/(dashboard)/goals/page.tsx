@@ -404,9 +404,55 @@ export default function GoalsPage() {
     <>
       <Header title="Daily Goals" />
 
-      {/* ====== Weekly Overview ====== */}
+      <section className="mb-6 grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="glass-strong rounded-[2rem] p-6 sm:p-7">
+          <div className="section-label">
+            <span className="status-dot" />
+            daily intention board
+          </div>
+          <h2 className="mt-5 text-3xl font-semibold text-[var(--foreground)] sm:text-4xl" data-display="true">
+            Keep the day small enough to finish well.
+          </h2>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
+            Pick what matters, move it into order, and close the day with a record of what actually went right.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Selected day</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--foreground)]">{viewingToday ? "Today" : format(selectedDate, "MMM d")}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Completed</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--success)]">{completedCount}/{Math.max(totalCount, 1)}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Momentum</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--accent)]">{allCompleted ? "Fully done" : totalCount === 0 ? "Fresh slate" : "In progress"}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="soft-card rounded-[1.7rem] p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">focus note</p>
+          <p className="mt-3 text-2xl font-semibold text-[var(--foreground)]" data-display="true">
+            Finishing three meaningful things is often better than listing ten.
+          </p>
+          <div className="mt-6 space-y-3 text-sm">
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">Evening check-in</span>
+              <span className="font-semibold text-[var(--foreground)]">{showEveningCheckin ? "Ready" : "Later"}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">AI summary</span>
+              <span className="font-semibold text-[var(--foreground)]">{showAiSummary ? "Available" : "Waiting"}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="mb-6">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="soft-card rounded-[1.8rem] p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Trophy size={18} className="text-[var(--warning)]" />
@@ -491,7 +537,6 @@ export default function GoalsPage() {
         </div>
       </section>
 
-      {/* ====== Date Navigation ====== */}
       <section className="mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -536,9 +581,8 @@ export default function GoalsPage() {
         </div>
       </section>
 
-      {/* ====== Morning Goals Section ====== */}
       <section className="mb-6">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+        <div className="soft-card rounded-[1.9rem] p-6">
           <div className="flex items-center gap-2 mb-1">
             <Sun size={20} className="text-[var(--warning)]" />
             <h3 className="text-lg font-bold text-[var(--foreground)]">
@@ -760,12 +804,12 @@ export default function GoalsPage() {
                     ? "e.g. Finish the project proposal..."
                     : "Add another goal..."
                 }
-                className="flex-1 px-4 py-2.5 text-sm rounded-xl border border-[var(--border)] bg-[var(--background)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary-light)]/30 placeholder:text-[var(--muted)]/60"
+                className="soft-input flex-1 px-4 py-2.5 text-sm placeholder:text-[var(--muted)]/60"
               />
               <button
                 onClick={addGoal}
                 disabled={addingGoal || !newGoalTitle.trim()}
-                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-[var(--primary)] rounded-xl hover:opacity-90 disabled:opacity-40 transition-opacity"
+                className="cozy-button flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium disabled:opacity-40"
               >
                 {addingGoal ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -787,10 +831,9 @@ export default function GoalsPage() {
         </div>
       </section>
 
-      {/* ====== Evening Check-in Section ====== */}
       {showEveningCheckin && (
         <section className="mb-6">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <div className="soft-card rounded-[1.9rem] p-6">
             <div className="flex items-center gap-2 mb-1">
               <Moon size={20} className="text-[var(--primary-light)]" />
               <h3 className="text-lg font-bold text-[var(--foreground)]">
@@ -826,7 +869,7 @@ export default function GoalsPage() {
                       }))
                     }
                     placeholder="What's your win? (e.g. Finished ahead of schedule!)"
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-[var(--border)] bg-[var(--surface)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary-light)]/30 placeholder:text-[var(--muted)]/50"
+                    className="soft-input px-3 py-2 text-sm placeholder:text-[var(--muted)]/50"
                   />
                 </div>
               ))}
@@ -837,7 +880,7 @@ export default function GoalsPage() {
                 <button
                   onClick={saveWinNotes}
                   disabled={savingWins}
-                  className="flex items-center gap-1.5 px-5 py-2.5 text-sm font-medium text-white bg-[var(--success)] rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity"
+                  className="flex items-center gap-1.5 rounded-xl bg-[var(--success)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
                 >
                   {savingWins ? (
                     <Loader2 size={16} className="animate-spin" />
@@ -862,20 +905,12 @@ export default function GoalsPage() {
         </section>
       )}
 
-      {/* ====== AI Day Summary ====== */}
       {showAiSummary && viewingToday && (
         <section className="mb-6">
-          <div
-            className="rounded-2xl border p-6 shadow-sm"
-            style={{
-              background:
-                "linear-gradient(135deg, #f3f0ff 0%, #ede7ff 40%, #fce4ec 100%)",
-              borderColor: "var(--primary-light)",
-            }}
-          >
+          <div className="insight-gradient rounded-[1.9rem] p-6 text-white">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles size={20} className="text-[var(--primary)]" />
-              <h3 className="text-lg font-bold text-[var(--primary)]">
+              <Sparkles size={20} className="text-white/90" />
+              <h3 className="text-lg font-bold text-white">
                 Your Day Summary
               </h3>
             </div>
@@ -896,16 +931,16 @@ export default function GoalsPage() {
                 />
               </div>
             ) : aiSummary ? (
-              <p className="text-sm leading-relaxed text-[var(--foreground)]">
+              <p className="text-sm leading-relaxed text-white/90">
                 {aiSummary}
               </p>
             ) : (
-              <p className="text-sm text-[var(--muted)]">
+              <p className="text-sm text-white/70">
                 Could not generate summary. Try again later.
               </p>
             )}
 
-            <div className="flex items-center gap-1 mt-4 text-[var(--primary-light)] text-xs">
+            <div className="mt-4 flex items-center gap-1 text-xs text-white/70">
               <Sparkles size={12} />
               <span>Powered by NudgeAI</span>
             </div>
