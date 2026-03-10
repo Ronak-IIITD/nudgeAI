@@ -49,6 +49,8 @@ const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const STREAK_MILESTONES = [7, 30, 100];
 
+const PANEL_CLASS = "soft-card rounded-[1.7rem] p-5";
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -207,6 +209,12 @@ export default function HabitsPage() {
   const filteredHabits =
     filter === "all" ? habits : habits.filter((h) => h.category === filter);
 
+  const checkedTodayCount = habits.filter((habit) => isCheckedInToday(habit)).length;
+  const longestActiveStreak = habits.reduce(
+    (max, habit) => Math.max(max, habit.currentStreak),
+    0
+  );
+
   // -----------------------------------------------------------------------
   // Streak calendar helpers
   // -----------------------------------------------------------------------
@@ -253,16 +261,63 @@ export default function HabitsPage() {
         </div>
       )}
 
-      {/* Top bar: Add button + filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        {/* Category filter tabs */}
-        <div className="flex flex-wrap gap-2">
+      <section className="mb-6 grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="glass-strong rounded-[2rem] p-6 sm:p-7">
+          <div className="section-label">
+            <span className="status-dot" />
+            ritual tracker
+          </div>
+          <h2 className="mt-5 text-3xl font-semibold text-[var(--foreground)] sm:text-4xl" data-display="true">
+            Build momentum with routines you actually want to keep.
+          </h2>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
+            Keep habits visible, celebrate streaks, and make consistency feel rewarding instead of rigid.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Active habits</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{habits.length}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Checked today</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--success)]">{checkedTodayCount}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Best live streak</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--accent)]">{longestActiveStreak}d</p>
+            </div>
+          </div>
+        </div>
+
+        <div className={`${PANEL_CLASS} flex flex-col justify-between`}>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">consistency note</p>
+            <p className="mt-3 text-2xl font-semibold text-[var(--foreground)]" data-display="true">
+              Small check-ins compound into a steady identity.
+            </p>
+          </div>
+          <div className="mt-6 space-y-3 text-sm">
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">Filter</span>
+              <span className="font-semibold capitalize text-[var(--foreground)]">{filter}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">Focus</span>
+              <span className="font-semibold text-[var(--foreground)]">Keep showing up</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="segmented-control flex-wrap">
           <button
             onClick={() => setFilter("all")}
-            className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+            className={`segmented-pill transition-all ${
               filter === "all"
-                ? "bg-[var(--primary)] text-white border-[var(--primary)]"
-                : "bg-[var(--surface)] text-[var(--muted)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
+                ? "segmented-pill-active"
+                : "hover:text-[var(--foreground)]"
             }`}
           >
             All
@@ -271,10 +326,10 @@ export default function HabitsPage() {
             <button
               key={cat.value}
               onClick={() => setFilter(cat.value)}
-              className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+              className={`segmented-pill transition-all ${
                 filter === cat.value
-                  ? "bg-[var(--primary)] text-white border-[var(--primary)]"
-                  : "bg-[var(--surface)] text-[var(--muted)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
+                  ? "segmented-pill-active"
+                  : "hover:text-[var(--foreground)]"
               }`}
             >
               {cat.label}
@@ -287,7 +342,7 @@ export default function HabitsPage() {
             resetForm();
             setShowForm(true);
           }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity shrink-0"
+          className="cozy-button inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium"
         >
           <Plus size={18} />
           Add Habit
@@ -297,8 +352,7 @@ export default function HabitsPage() {
       {/* Add Habit Modal */}
       {showForm && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="bg-[var(--surface)] rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden">
-            {/* Modal header */}
+          <div className="soft-card-strong mx-4 w-full max-w-lg overflow-hidden rounded-[1.9rem]">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">
                 New Habit
@@ -311,9 +365,7 @@ export default function HabitsPage() {
               </button>
             </div>
 
-            {/* Modal body */}
             <form onSubmit={handleAddHabit} className="p-6 space-y-4">
-              {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Name
@@ -324,11 +376,10 @@ export default function HabitsPage() {
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="e.g. Meditate for 10 minutes"
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
+                  className="soft-input px-3 py-2 text-sm"
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Description
@@ -341,11 +392,10 @@ export default function HabitsPage() {
                   onChange={(e) => setFormDescription(e.target.value)}
                   placeholder="Why is this habit important?"
                   rows={2}
-                  className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] resize-none"
+                  className="soft-input resize-none px-3 py-2 text-sm"
                 />
               </div>
 
-              {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Category
@@ -356,7 +406,7 @@ export default function HabitsPage() {
                       key={cat.value}
                       type="button"
                       onClick={() => setFormCategory(cat.value)}
-                      className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                      className={`segmented-pill border transition-colors ${
                         formCategory === cat.value
                           ? "bg-[var(--primary)] text-white border-[var(--primary)]"
                           : "bg-[var(--surface)] text-[var(--muted)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
@@ -368,7 +418,6 @@ export default function HabitsPage() {
                 </div>
               </div>
 
-              {/* Frequency */}
               <div>
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Frequency
@@ -386,7 +435,7 @@ export default function HabitsPage() {
                       key={freq.value}
                       type="button"
                       onClick={() => setFormFrequency(freq.value)}
-                      className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                      className={`segmented-pill border transition-colors ${
                         formFrequency === freq.value
                           ? "bg-[var(--primary)] text-white border-[var(--primary)]"
                           : "bg-[var(--surface)] text-[var(--muted)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
@@ -397,7 +446,6 @@ export default function HabitsPage() {
                   ))}
                 </div>
 
-                {/* Custom day checkboxes */}
                 {formFrequency === "custom" && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {DAY_LABELS.map((label, idx) => (
@@ -418,7 +466,6 @@ export default function HabitsPage() {
                 )}
               </div>
 
-              {/* Submit */}
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
@@ -430,7 +477,7 @@ export default function HabitsPage() {
                 <button
                   type="submit"
                   disabled={submitting || !formName.trim()}
-                  className="px-4 py-2 text-sm rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="cozy-button rounded-xl px-4 py-2 text-sm font-medium transition-opacity disabled:opacity-50"
                 >
                   {submitting ? "Adding..." : "Add Habit"}
                 </button>
@@ -446,7 +493,7 @@ export default function HabitsPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-5 animate-pulse"
+              className="soft-card rounded-[1.7rem] p-5 animate-pulse"
             >
               <div className="h-5 w-1/3 bg-[var(--border)] rounded mb-3" />
               <div className="h-4 w-1/2 bg-[var(--border)] rounded mb-4" />
@@ -455,12 +502,11 @@ export default function HabitsPage() {
           ))}
         </div>
       ) : filteredHabits.length === 0 ? (
-        /* Empty state */
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[var(--primary-light)]/20 flex items-center justify-center mb-4">
+        <div className="soft-card-strong flex flex-col items-center justify-center rounded-[2rem] py-20 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--primary-light)]/20">
             <Sparkles size={32} className="text-[var(--primary)]" />
           </div>
-          <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">
+          <h2 className="mb-2 text-xl font-semibold text-[var(--foreground)]">
             {filter === "all"
               ? "No habits yet"
               : `No ${filter} habits`}
@@ -476,14 +522,13 @@ export default function HabitsPage() {
               if (filter !== "all") setFormCategory(filter);
               setShowForm(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+            className="cozy-button inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium"
           >
             <Plus size={18} />
             Add Your First Habit
           </button>
         </div>
       ) : (
-        /* Habit cards grid */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredHabits.map((habit) => {
             const checkedIn = isCheckedInToday(habit);
@@ -492,9 +537,8 @@ export default function HabitsPage() {
             return (
               <div
                 key={habit.id}
-                className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] shadow-sm p-5 flex flex-col gap-4 transition-shadow hover:shadow-md"
+                className="soft-card rounded-[1.7rem] p-5 flex flex-col gap-4 transition-shadow hover:shadow-md"
               >
-                {/* Top row: name, category, delete */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -526,10 +570,8 @@ export default function HabitsPage() {
                   </button>
                 </div>
 
-                {/* Streak + check-in row */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    {/* Current streak */}
                     <div className="flex items-center gap-1.5">
                       {habit.currentStreak > 0 && (
                         <Flame
@@ -545,13 +587,11 @@ export default function HabitsPage() {
                       </span>
                     </div>
 
-                    {/* Longest streak */}
                     <div className="text-xs text-[var(--muted)]">
                       Best: {habit.longestStreak}d
                     </div>
                   </div>
 
-                  {/* Check-in button */}
                   <button
                     onClick={() => handleCheckin(habit)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
@@ -574,7 +614,6 @@ export default function HabitsPage() {
                   </button>
                 </div>
 
-                {/* Streak milestone badge */}
                 {STREAK_MILESTONES.some(
                   (m) => habit.currentStreak >= m
                 ) && (
@@ -588,7 +627,6 @@ export default function HabitsPage() {
                   </div>
                 )}
 
-                {/* 30-day streak calendar */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs text-[var(--muted)]">

@@ -96,7 +96,7 @@ const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 function CardSkeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm animate-pulse ${className}`}
+      className={`soft-card rounded-[1.7rem] p-5 animate-pulse ${className}`}
     >
       <div className="h-4 w-24 bg-[var(--border)] rounded mb-3" />
       <div className="h-8 w-16 bg-[var(--border)] rounded mb-2" />
@@ -108,7 +108,7 @@ function CardSkeleton({ className = "" }: { className?: string }) {
 function ChartSkeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm animate-pulse ${className}`}
+      className={`soft-card rounded-[1.7rem] p-5 animate-pulse ${className}`}
     >
       <div className="h-4 w-32 bg-[var(--border)] rounded mb-4" />
       <div className="h-48 bg-[var(--border)] rounded" />
@@ -137,7 +137,7 @@ function ChartTooltipContent({
   if (!active || !payload?.length) return null;
   const value = payload[0]?.value;
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 shadow-md text-xs">
+    <div className="soft-card rounded-xl px-3 py-2 text-xs shadow-md">
       <p className="text-[var(--muted)] mb-0.5">{String(label ?? "")}</p>
       <p className="font-semibold text-[var(--foreground)]">
         {valueLabel}: {String(value ?? "")}
@@ -600,16 +600,66 @@ export default function InsightsPage() {
     <>
       <Header title="Insights" />
 
-      {/* Time Range Selector */}
-      <div className="flex items-center gap-2 mb-6">
+      <section className="mb-6 grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="glass-strong rounded-[2rem] p-6 sm:p-7">
+          <div className="section-label">
+            <span className="status-dot" />
+            pattern view
+          </div>
+          <h2 className="mt-5 text-3xl font-semibold text-[var(--foreground)] sm:text-4xl" data-display="true">
+            See what your momentum actually looks like over time.
+          </h2>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
+            Explore the rhythm across your goals, habits, focus sessions, and mood so your next move feels informed, not guessed.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-4">
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Goals done</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{totalGoalsCompleted}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Focus hours</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--accent)]">{totalFocusHours}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Avg mood</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--success)]">{avgMood ?? "-"}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Range</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{range}d</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="soft-card rounded-[1.7rem] p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">quick read</p>
+          <p className="mt-3 text-2xl font-semibold text-[var(--foreground)]" data-display="true">
+            Trends become useful when they help you adjust your next week.
+          </p>
+          <div className="mt-6 space-y-3 text-sm">
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">Most productive</span>
+              <span className="font-semibold text-[var(--foreground)]">{mostProductiveDay}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">Completion rate</span>
+              <span className="font-semibold text-[var(--foreground)]">{goalCompletionRate}%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="segmented-control mb-6 w-fit">
         {([7, 30, 90] as TimeRange[]).map((r) => (
           <button
             key={r}
             onClick={() => setRange(r)}
-            className={`px-4 py-2 text-sm font-medium rounded-xl transition-all ${
+            className={`segmented-pill transition-all ${
               range === r
-                ? "bg-[var(--primary)] text-white shadow-sm"
-                : "bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)] hover:border-[var(--primary-light)]"
+                ? "segmented-pill-active"
+                : "hover:text-[var(--foreground)]"
             }`}
           >
             {r} days
@@ -617,9 +667,8 @@ export default function InsightsPage() {
         ))}
       </div>
 
-      {/* Stats Overview Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="soft-card rounded-[1.5rem] p-5">
           <div className="flex items-center gap-2 mb-2">
             <Target size={16} className="text-[var(--primary)]" />
             <span className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">
@@ -634,7 +683,7 @@ export default function InsightsPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="soft-card rounded-[1.5rem] p-5">
           <div className="flex items-center gap-2 mb-2">
             <Flame size={16} className="text-[#fd79a8]" />
             <span className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">
@@ -649,7 +698,7 @@ export default function InsightsPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="soft-card rounded-[1.5rem] p-5">
           <div className="flex items-center gap-2 mb-2">
             <Clock size={16} className="text-[var(--primary)]" />
             <span className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">
@@ -665,7 +714,7 @@ export default function InsightsPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="soft-card rounded-[1.5rem] p-5">
           <div className="flex items-center gap-2 mb-2">
             <Smile size={16} className="text-[#00b894]" />
             <span className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">
@@ -681,10 +730,8 @@ export default function InsightsPage() {
         </div>
       </div>
 
-      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Mood Trend Chart */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="soft-card rounded-[1.7rem] p-5">
           <div className="flex items-center gap-2 mb-4">
             <Smile size={16} className="text-[var(--primary)]" />
             <h3 className="font-semibold text-[var(--foreground)]">
@@ -740,8 +787,7 @@ export default function InsightsPage() {
           )}
         </div>
 
-        {/* Habit Completion Rate */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="soft-card rounded-[1.7rem] p-5">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 size={16} className="text-[#00b894]" />
             <h3 className="font-semibold text-[var(--foreground)]">
@@ -796,8 +842,7 @@ export default function InsightsPage() {
         </div>
       </div>
 
-      {/* Productivity Heatmap */}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm mb-6">
+      <div className="soft-card rounded-[1.7rem] p-5 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Flame size={16} className="text-[var(--primary)]" />
           <h3 className="font-semibold text-[var(--foreground)]">
@@ -866,10 +911,8 @@ export default function InsightsPage() {
         </div>
       </div>
 
-      {/* Bottom Row: Focus Stats + Goal Completion + Correlation */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-        {/* Focus Stats */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="soft-card rounded-[1.7rem] p-5">
           <div className="flex items-center gap-2 mb-4">
             <Clock size={16} className="text-[var(--primary)]" />
             <h3 className="font-semibold text-[var(--foreground)]">
@@ -902,8 +945,7 @@ export default function InsightsPage() {
           </div>
         </div>
 
-        {/* Goal Completion Rate */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="soft-card rounded-[1.7rem] p-5">
           <div className="flex items-center gap-2 mb-4">
             <Target size={16} className="text-[var(--primary)]" />
             <h3 className="font-semibold text-[var(--foreground)]">
@@ -926,7 +968,7 @@ export default function InsightsPage() {
                   cy="50"
                   r="42"
                   fill="none"
-                  stroke="#6c5ce7"
+                  stroke="var(--primary)"
                   strokeWidth="10"
                   strokeLinecap="round"
                   strokeDasharray={`${goalCompletionRate * 2.64} ${264 - goalCompletionRate * 2.64}`}
@@ -965,8 +1007,7 @@ export default function InsightsPage() {
           </div>
         </div>
 
-        {/* Mood-Productivity Correlation */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="soft-card rounded-[1.7rem] p-5">
           <div className="flex items-center gap-2 mb-4">
             <Brain size={16} className="text-[var(--primary)]" />
             <h3 className="font-semibold text-[var(--foreground)]">
@@ -974,7 +1015,7 @@ export default function InsightsPage() {
             </h3>
           </div>
           <div className="space-y-4">
-            <div className="rounded-xl bg-[#f8f7ff] p-3">
+            <div className="rounded-xl bg-[rgba(139,111,90,0.08)] p-3">
               <p className="text-sm text-[var(--foreground)]">
                 <span className="font-semibold">Most productive on </span>
                 <span className="text-[var(--primary)] font-bold">
@@ -982,7 +1023,7 @@ export default function InsightsPage() {
                 </span>
               </p>
             </div>
-            <div className="rounded-xl bg-[#f0fdf4] p-3">
+            <div className="rounded-xl bg-[rgba(123,154,123,0.1)] p-3">
               <p className="text-sm text-[var(--foreground)]">
                 {moodProductivityCorrelation.diff > 0 ? (
                   <>
@@ -1012,13 +1053,7 @@ export default function InsightsPage() {
         </div>
       </div>
 
-      {/* AI Insights Card */}
-      <div
-        className="rounded-2xl p-5 shadow-sm mb-6"
-        style={{
-          background: "linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)",
-        }}
-      >
+      <div className="insight-gradient mb-6 rounded-[1.8rem] p-5 text-white">
         <div className="flex items-center gap-2 mb-3">
           <Brain size={18} className="text-white/90" />
           <h3 className="font-semibold text-white">AI Insights</h3>

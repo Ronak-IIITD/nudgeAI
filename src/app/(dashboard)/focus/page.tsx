@@ -64,6 +64,8 @@ const MODE_TABS: { key: TimerMode; label: string; icon: typeof Timer }[] = [
   { key: "flow", label: "Flow", icon: Zap },
 ];
 
+const PANEL_CLASS = "soft-card rounded-[1.7rem] p-5";
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -428,7 +430,7 @@ export default function FocusPage() {
 
   const ringTrackColor = isBreakPhase
     ? "rgba(0,184,148,0.15)"
-    : "rgba(108,92,231,0.12)";
+    : "rgba(139,111,90,0.12)";
 
   // -----------------------------------------------------------------------
   // Render
@@ -438,20 +440,67 @@ export default function FocusPage() {
     <>
       <Header title="Focus Timer" />
 
-      <div className="max-w-5xl mx-auto flex flex-col lg:flex-row gap-8">
-        {/* ---- Main Timer Column ---- */}
+      <section className="mx-auto mb-8 grid max-w-5xl gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="glass-strong rounded-[2rem] p-6 sm:p-7">
+          <div className="section-label">
+            <span className="status-dot" />
+            focus ritual
+          </div>
+          <h2 className="mt-5 text-3xl font-semibold text-[var(--foreground)] sm:text-4xl" data-display="true">
+            Make deep work feel calm, clear, and repeatable.
+          </h2>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
+            Choose your rhythm, name the task, and let the timer hold the structure while you settle into the work.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Mode</p>
+              <p className="mt-2 text-2xl font-semibold capitalize text-[var(--foreground)]">{mode}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Focused today</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--accent)]">{totalFocusMinutes}m</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Completed sessions</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--success)]">{totalSessionCount}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className={`${PANEL_CLASS} flex flex-col justify-between`}>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">session note</p>
+            <p className="mt-3 text-2xl font-semibold text-[var(--foreground)]" data-display="true">
+              Protect one block of attention and the rest of the day gets easier.
+            </p>
+          </div>
+          <div className="mt-6 space-y-3 text-sm">
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">Best session</span>
+              <span className="font-semibold text-[var(--foreground)]">{bestStreak} min</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">Daily goal</span>
+              <span className="font-semibold text-[var(--foreground)]">120 min target</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto flex max-w-5xl flex-col gap-8 lg:flex-row">
         <div className="flex-1 flex flex-col items-center">
-          {/* Mode Tabs */}
-          <div className="flex bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-1 mb-8 w-full max-w-sm">
+          <div className="segmented-control mb-8 w-full max-w-sm">
             {MODE_TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => handleModeChange(key)}
                 disabled={isActive}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
+                className={`segmented-pill flex-1 flex items-center justify-center gap-1.5 transition-all ${
                   mode === key
-                    ? "bg-[var(--primary)] text-white shadow-sm"
-                    : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                    ? "segmented-pill-active"
+                    : "hover:text-[var(--foreground)]"
                 } ${isActive ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
               >
                 <Icon size={15} />
@@ -468,7 +517,7 @@ export default function FocusPage() {
               value={taskTitle}
               onChange={(e) => setTaskTitle(e.target.value)}
               disabled={isActive}
-              className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] text-sm placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-transparent disabled:opacity-60"
+              className="soft-input px-4 py-3 text-sm placeholder:text-[var(--muted)] disabled:opacity-60"
             />
           </div>
 
@@ -491,7 +540,8 @@ export default function FocusPage() {
           </div>
 
           {/* Circular Timer */}
-          <div className="relative flex items-center justify-center mb-6" style={{ width: CIRCLE_SIZE, height: CIRCLE_SIZE }}>
+          <div className="soft-card-strong relative mb-6 flex items-center justify-center rounded-[2rem] p-6" style={{ width: CIRCLE_SIZE + 48, maxWidth: "100%" }}>
+            <div className="relative flex items-center justify-center" style={{ width: CIRCLE_SIZE, height: CIRCLE_SIZE }}>
             <svg
               width={CIRCLE_SIZE}
               height={CIRCLE_SIZE}
@@ -540,6 +590,7 @@ export default function FocusPage() {
                 <span className="text-xs text-[var(--muted)] mt-1">elapsed</span>
               )}
             </div>
+            </div>
           </div>
 
           {/* Round Progress (not flow) */}
@@ -576,7 +627,7 @@ export default function FocusPage() {
             {isIdle && phase !== "done" && (
               <button
                 onClick={handleStart}
-                className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-[var(--primary)] text-white font-semibold text-base hover:opacity-90 shadow-md hover:shadow-lg cursor-pointer"
+                className="cozy-button flex items-center gap-2 rounded-2xl px-8 py-3 text-base font-semibold cursor-pointer"
               >
                 <Play size={20} fill="white" />
                 Start
@@ -586,7 +637,7 @@ export default function FocusPage() {
             {isRunning && (
               <button
                 onClick={handlePause}
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[var(--warning)] text-[var(--foreground)] font-semibold text-base hover:opacity-90 shadow-md cursor-pointer"
+                className="flex items-center gap-2 rounded-2xl bg-[var(--warning)] px-6 py-3 text-base font-semibold text-[var(--foreground)] shadow-md cursor-pointer hover:opacity-90"
               >
                 <Pause size={20} />
                 Pause
@@ -596,7 +647,7 @@ export default function FocusPage() {
             {isPaused && (
               <button
                 onClick={handleResume}
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[var(--primary)] text-white font-semibold text-base hover:opacity-90 shadow-md cursor-pointer"
+                className="cozy-button flex items-center gap-2 rounded-2xl px-6 py-3 text-base font-semibold cursor-pointer"
               >
                 <Play size={20} fill="white" />
                 Resume
@@ -605,18 +656,18 @@ export default function FocusPage() {
 
             {isActive && (
               <>
-                <button
-                  onClick={handleStop}
-                  className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] font-medium text-sm hover:bg-red-50 hover:text-[var(--danger)] hover:border-red-200 cursor-pointer"
-                >
-                  <Square size={18} />
-                  Stop
+                  <button
+                    onClick={handleStop}
+                    className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-3 text-sm font-medium text-[var(--muted)] cursor-pointer hover:border-red-200 hover:bg-red-50 hover:text-[var(--danger)]"
+                  >
+                    <Square size={18} />
+                    Stop
                 </button>
 
                 {mode !== "flow" && (
                   <button
                     onClick={handleSkip}
-                    className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] font-medium text-sm hover:bg-[var(--surface-hover)] cursor-pointer"
+                    className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-3 text-sm font-medium text-[var(--muted)] cursor-pointer hover:bg-[var(--surface-hover)]"
                   >
                     <SkipForward size={18} />
                     Skip
@@ -628,7 +679,7 @@ export default function FocusPage() {
             {phase === "done" && isIdle && (
               <button
                 onClick={handleStart}
-                className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-[var(--primary)] text-white font-semibold text-base hover:opacity-90 shadow-md cursor-pointer"
+                className="cozy-button flex items-center gap-2 rounded-2xl px-8 py-3 text-base font-semibold cursor-pointer"
               >
                 <Play size={20} fill="white" />
                 New Session
@@ -638,7 +689,7 @@ export default function FocusPage() {
 
           {/* Custom Settings (inline) */}
           {mode === "custom" && isIdle && (
-            <div className="w-full max-w-sm bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-5 mb-8">
+            <div className="soft-card w-full max-w-sm rounded-[1.7rem] p-5 mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <Settings2 size={16} className="text-[var(--primary)]" />
                 <span className="text-sm font-semibold text-[var(--foreground)]">
@@ -656,7 +707,7 @@ export default function FocusPage() {
                     max={120}
                     value={customWork}
                     onChange={(e) => setCustomWork(Math.max(1, Math.min(120, Number(e.target.value))))}
-                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
+                    className="soft-input px-3 py-2 text-center text-sm font-medium"
                   />
                 </div>
                 <div>
@@ -669,7 +720,7 @@ export default function FocusPage() {
                     max={60}
                     value={customBreak}
                     onChange={(e) => setCustomBreak(Math.max(1, Math.min(60, Number(e.target.value))))}
-                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
+                    className="soft-input px-3 py-2 text-center text-sm font-medium"
                   />
                 </div>
                 <div>
@@ -682,7 +733,7 @@ export default function FocusPage() {
                     max={12}
                     value={customRounds}
                     onChange={(e) => setCustomRounds(Math.max(1, Math.min(12, Number(e.target.value))))}
-                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
+                    className="soft-input px-3 py-2 text-center text-sm font-medium"
                   />
                 </div>
               </div>
@@ -691,15 +742,15 @@ export default function FocusPage() {
 
           {/* AI Message */}
           {aiMessage && (
-            <div className="w-full max-w-sm bg-purple-50 border border-purple-100 rounded-2xl p-4 mb-8 flex items-start gap-3">
+            <div className="insight-gradient w-full max-w-sm rounded-[1.7rem] p-4 mb-8 flex items-start gap-3 text-white">
               <div className="w-8 h-8 rounded-full bg-[var(--primary)] flex items-center justify-center flex-shrink-0 mt-0.5">
                 <Sparkles size={16} className="text-white" />
               </div>
               <div>
-                <p className="text-sm font-medium text-[var(--foreground)] mb-0.5">
+                <p className="mb-0.5 text-sm font-medium text-white">
                   NudgeAI
                 </p>
-                <p className="text-sm text-[var(--muted)] leading-relaxed">
+                <p className="text-sm leading-relaxed text-white/85">
                   {aiMessage}
                 </p>
               </div>
@@ -716,7 +767,7 @@ export default function FocusPage() {
                 Loading...
               </div>
             ) : todaySessions.length === 0 ? (
-              <div className="text-sm text-[var(--muted)] py-4 text-center bg-[var(--surface)] rounded-xl border border-[var(--border)]">
+              <div className="soft-card text-sm text-[var(--muted)] py-4 text-center rounded-xl">
                 No sessions yet today. Start your first focus session!
               </div>
             ) : (
@@ -724,7 +775,7 @@ export default function FocusPage() {
                 {todaySessions.map((s) => (
                   <div
                     key={s.id}
-                    className="flex items-center justify-between px-4 py-3 bg-[var(--surface)] rounded-xl border border-[var(--border)]"
+                    className="soft-card flex items-center justify-between rounded-xl px-4 py-3"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div
@@ -764,9 +815,8 @@ export default function FocusPage() {
           </div>
         </div>
 
-        {/* ---- Stats Sidebar ---- */}
         <div className="lg:w-64 flex-shrink-0">
-          <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-5 lg:sticky lg:top-8">
+          <div className="soft-card-strong rounded-[1.8rem] p-5 lg:sticky lg:top-8">
             <h3 className="text-sm font-semibold text-[var(--foreground)] mb-4">
               Today&apos;s Stats
             </h3>

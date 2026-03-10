@@ -401,6 +401,71 @@ h3,
     backdrop-filter: blur(16px);
   }
 
+  .soft-card {
+    background: linear-gradient(180deg, rgba(255, 251, 247, 0.94), rgba(249, 239, 229, 0.86));
+    border: 1px solid rgba(139, 111, 90, 0.14);
+    box-shadow: 0 16px 36px rgba(84, 60, 43, 0.07);
+    backdrop-filter: blur(14px);
+  }
+
+  .soft-card-strong {
+    background: linear-gradient(180deg, rgba(255, 252, 248, 0.96), rgba(245, 234, 224, 0.92));
+    border: 1px solid rgba(139, 111, 90, 0.16);
+    box-shadow: 0 22px 55px rgba(84, 60, 43, 0.1);
+    backdrop-filter: blur(18px);
+  }
+
+  .soft-input {
+    width: 100%;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(139, 111, 90, 0.16);
+    background: rgba(255, 249, 243, 0.82);
+    color: var(--foreground);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+
+  .soft-input:focus {
+    outline: none;
+    border-color: rgba(139, 111, 90, 0.4);
+    box-shadow: 0 0 0 4px rgba(201, 178, 156, 0.28);
+  }
+
+  .segmented-control {
+    display: inline-flex;
+    gap: 0.3rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(139, 111, 90, 0.14);
+    background: rgba(255, 250, 245, 0.74);
+    padding: 0.25rem;
+    box-shadow: 0 12px 28px rgba(84, 60, 43, 0.06);
+  }
+
+  .segmented-pill {
+    border-radius: 0.8rem;
+    padding: 0.55rem 0.95rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .segmented-pill-active {
+    background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 10px 22px rgba(109, 84, 65, 0.16);
+  }
+
+  .metric-card {
+    border-radius: 1.35rem;
+    background: rgba(255, 250, 244, 0.78);
+    border: 1px solid rgba(139, 111, 90, 0.1);
+    padding: 1rem;
+  }
+
+  .insight-gradient {
+    background: linear-gradient(135deg, rgba(92, 73, 59, 0.96), rgba(135, 109, 91, 0.92) 55%, rgba(85, 107, 123, 0.86));
+    box-shadow: 0 22px 60px rgba(84, 60, 43, 0.16);
+  }
+
   .gradient-stroke {
     background-image: linear-gradient(120deg, var(--primary-dark), var(--accent), var(--secondary));
     background-size: 180% 180%;

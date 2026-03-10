@@ -35,6 +35,8 @@ const PRIORITY_CONFIG = {
   urgent: { label: "Urgent", color: "bg-[#e17055]", text: "text-white" },
 };
 
+const PANEL_CLASS = "soft-card rounded-[1.7rem] p-5";
+
 function getCountdown(dueDate: string): { text: string; isOverdue: boolean; isUrgent: boolean } {
   const due = new Date(dueDate);
   if (isPast(due)) {
@@ -211,22 +213,73 @@ export default function DeadlinesPage() {
     { key: "completed", label: "Completed" },
   ];
 
+  const activeCount = deadlines.filter((d) => !d.completed).length;
+  const completedCount = deadlines.filter((d) => d.completed).length;
+  const urgentCount = deadlines.filter((d) => !d.completed && getCountdown(d.dueDate).isUrgent).length;
+
   return (
     <>
       <Header title="Deadlines" />
 
-      {/* Action bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        {/* Filters */}
-        <div className="flex gap-1 bg-[var(--surface)] rounded-xl border border-[var(--border)] p-1">
+      <section className="mb-6 grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="glass-strong rounded-[2rem] p-6 sm:p-7">
+          <div className="section-label">
+            <span className="status-dot" />
+            your timeline at a glance
+          </div>
+          <h2 className="mt-5 text-3xl font-semibold text-[var(--foreground)] sm:text-4xl" data-display="true">
+            Keep every commitment visible before it gets loud.
+          </h2>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
+            Track due dates, spot urgent work early, and keep your deadlines feeling organized instead of overwhelming.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Active</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{activeCount}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Urgent</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--danger)]">{urgentCount}</p>
+            </div>
+            <div className="metric-card">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Completed</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--success)]">{completedCount}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className={`${PANEL_CLASS} flex flex-col justify-between`}>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">planning note</p>
+            <p className="mt-3 text-2xl font-semibold text-[var(--foreground)]" data-display="true">
+              A calm list now saves a rushed week later.
+            </p>
+          </div>
+          <div className="mt-6 space-y-3 text-sm">
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">View</span>
+              <span className="font-semibold text-[var(--foreground)] capitalize">{filter}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.74)] px-4 py-3">
+              <span className="text-[var(--muted)]">Next step</span>
+              <span className="font-semibold text-[var(--foreground)]">Add or refine a date</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="segmented-control w-fit flex-wrap">
           {filters.map((f) => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`segmented-pill transition-all ${
                 filter === f.key
-                  ? "bg-[var(--primary)] text-white"
-                  : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                  ? "segmented-pill-active"
+                  : "hover:text-[var(--foreground)]"
               }`}
             >
               {f.label}
@@ -236,7 +289,7 @@ export default function DeadlinesPage() {
 
         <button
           onClick={openAddModal}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-xl font-medium text-sm hover:opacity-90 transition-opacity"
+          className="cozy-button inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium"
         >
           <Plus size={18} />
           Add Deadline
@@ -249,11 +302,11 @@ export default function DeadlinesPage() {
           <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center mb-4">
+        <div className="soft-card-strong flex flex-col items-center justify-center rounded-[2rem] py-20 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)]">
             <Calendar size={28} className="text-[var(--muted)]" />
           </div>
-          <h3 className="text-lg font-semibold text-[var(--foreground)] mb-1">
+          <h3 className="mb-1 text-lg font-semibold text-[var(--foreground)]">
             {filter === "completed"
               ? "No completed deadlines yet"
               : filter === "active"
@@ -270,7 +323,7 @@ export default function DeadlinesPage() {
           {filter !== "completed" && (
             <button
               onClick={openAddModal}
-              className="mt-4 flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-xl font-medium text-sm hover:opacity-90 transition-opacity"
+              className="cozy-button mt-4 flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium"
             >
               <Plus size={16} />
               Add Deadline
@@ -286,7 +339,7 @@ export default function DeadlinesPage() {
             return (
               <div
                 key={deadline.id}
-                className={`bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 sm:p-5 shadow-sm transition-colors hover:border-[var(--primary-light)] ${
+                className={`soft-card rounded-[1.6rem] p-4 transition-colors hover:border-[var(--primary-light)] sm:p-5 ${
                   deadline.completed ? "opacity-60" : ""
                 }`}
               >
@@ -320,9 +373,7 @@ export default function DeadlinesPage() {
                       >
                         {deadline.title}
                       </h3>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityCfg.color} ${priorityCfg.text}`}
-                      >
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${priorityCfg.color} ${priorityCfg.text}`}>
                         {priorityCfg.label}
                       </span>
                       {deadline.category && (
@@ -375,7 +426,7 @@ export default function DeadlinesPage() {
                     </button>
                     <button
                       onClick={() => deleteDeadline(deadline.id)}
-                      className="p-1.5 rounded-lg hover:bg-red-50 text-[var(--muted)] hover:text-[var(--danger)] transition-colors"
+                      className="rounded-lg p-1.5 text-[var(--muted)] transition-colors hover:bg-red-50 hover:text-[var(--danger)]"
                       aria-label="Delete deadline"
                     >
                       <Trash2 size={15} />
@@ -391,15 +442,12 @@ export default function DeadlinesPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40"
             onClick={closeModal}
           />
 
-          {/* Modal content */}
-          <div className="relative w-full max-w-lg bg-[var(--surface)] rounded-2xl border border-[var(--border)] shadow-xl">
-            {/* Modal header */}
+          <div className="soft-card-strong relative w-full max-w-lg rounded-[1.9rem]">
             <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">
                 {editingDeadline ? "Edit Deadline" : "Add Deadline"}
@@ -413,9 +461,7 @@ export default function DeadlinesPage() {
               </button>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="p-5 space-y-4">
-              {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
                   Title <span className="text-[var(--danger)]">*</span>
@@ -426,11 +472,10 @@ export default function DeadlinesPage() {
                   onChange={(e) => setFormTitle(e.target.value)}
                   placeholder="e.g., Submit project proposal"
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)]"
+                  className="soft-input px-3 py-2 text-sm placeholder:text-[var(--muted)]"
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
                   Description
@@ -440,11 +485,10 @@ export default function DeadlinesPage() {
                   onChange={(e) => setFormDescription(e.target.value)}
                   placeholder="Optional details about this deadline..."
                   rows={3}
-                  className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] resize-none"
+                  className="soft-input resize-none px-3 py-2 text-sm placeholder:text-[var(--muted)]"
                 />
               </div>
 
-              {/* Due Date */}
               <div>
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
                   Due Date <span className="text-[var(--danger)]">*</span>
@@ -454,16 +498,14 @@ export default function DeadlinesPage() {
                   value={formDueDate}
                   onChange={(e) => setFormDueDate(e.target.value)}
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)]"
+                  className="soft-input px-3 py-2 text-sm"
                 />
                 <p className="mt-1 text-xs text-[var(--muted)]">
                   Tip: You can type dates naturally, e.g., &quot;next Friday&quot; or &quot;in 3 days&quot;
                 </p>
               </div>
 
-              {/* Priority and Category row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Priority */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
                     Priority
@@ -473,7 +515,7 @@ export default function DeadlinesPage() {
                     onChange={(e) =>
                       setFormPriority(e.target.value as Deadline["priority"])
                     }
-                    className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)]"
+                    className="soft-input px-3 py-2 text-sm"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -482,7 +524,6 @@ export default function DeadlinesPage() {
                   </select>
                 </div>
 
-                {/* Category */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
                     Category
@@ -492,12 +533,11 @@ export default function DeadlinesPage() {
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
                     placeholder="e.g., Work, School"
-                    className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)]"
+                    className="soft-input px-3 py-2 text-sm placeholder:text-[var(--muted)]"
                   />
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
@@ -509,7 +549,7 @@ export default function DeadlinesPage() {
                 <button
                   type="submit"
                   disabled={submitting || !formTitle.trim() || !formDueDate}
-                  className="px-4 py-2 rounded-xl text-sm font-medium bg-[var(--primary)] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cozy-button rounded-xl px-4 py-2 text-sm font-medium transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {submitting
                     ? "Saving..."
