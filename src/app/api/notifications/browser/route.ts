@@ -22,6 +22,13 @@ function getTimeOfDay(date: Date): "morning" | "afternoon" | "evening" {
   return "evening";
 }
 
+function getDeadlineUrgency(minutesLeft: number): "low" | "medium" | "high" | "overdue" {
+  if (minutesLeft <= 0) return "overdue";
+  if (minutesLeft <= 60) return "high";
+  if (minutesLeft <= 180) return "medium";
+  return "low";
+}
+
 function normalizeToMidnightUTC(date: Date) {
   const normalized = new Date(date);
   normalized.setUTCHours(0, 0, 0, 0);
@@ -139,21 +146,20 @@ export async function GET() {
     const timeOfDay = getTimeOfDay(now);
     const nudgeContext: NudgeContext = {
       userName: user.name || "there",
+      aiTone: user.aiTone as NudgeContext["aiTone"],
       mood: latestMood?.mood,
       timeOfDay,
       completedGoalsToday: goals.filter((goal) => goal.completed).length,
       totalGoalsToday: goals.length,
+      activeHabitsCount: habits.length,
+      upcomingDeadlinesCount: deadlines.length,
     };
 
     let candidate: BrowserNotificationPayload | null = null;
 
     const urgentDeadline = deadlines.find((deadline) => minutesUntil(deadline.dueDate) <= 180);
     if (urgentDeadline) {
-      const urgency = minutesUntil(urgentDeadline.dueDate) <= 0
-        ? "overdue"
-        : minutesUntil(urgentDeadline.dueDate) <= 60
-        ? "high"
-        : "medium";
+      const urgency = getDeadlineUrgency(minutesUntil(urgentDeadline.dueDate));
 
       const body = await generateNudge(
         "deadline_reminder",
@@ -179,13 +185,20 @@ export async function GET() {
       const incompleteHabit = habits.find((habit) => habit.checkins.length === 0);
 
       if (incompleteHabit) {
+        const procrastinatedGoals = goals.filter((goal) => !goal.completed);
+        const shouldUseProcrastinationTone =
+          timeOfDay === "evening" && procrastinatedGoals.length >= 3;
+
         const body = await generateNudge(
-          "habit_nudge",
+          shouldUseProcrastinationTone ? "procrastination" : "habit_nudge",
           {
             ...nudgeContext,
             streakCount: incompleteHabit.currentStreak,
+            snoozedCount: procrastinatedGoals.length,
           },
-          incompleteHabit.name
+          shouldUseProcrastinationTone
+            ? `Unfinished goals: ${procrastinatedGoals.slice(0, 3).map((goal) => goal.title).join(", ")}. Habit still open: ${incompleteHabit.name}`
+            : incompleteHabit.name
         );
 
         candidate = {

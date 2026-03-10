@@ -6,6 +6,8 @@ const anthropic = new Anthropic({
 
 export type NudgeContext = {
   userName: string;
+  aiTone?: "friendly" | "motivational" | "direct";
+  timezone?: string;
   mood?: number; // 1-5
   timeOfDay: "morning" | "afternoon" | "evening";
   streakCount?: number;
@@ -13,7 +15,21 @@ export type NudgeContext = {
   snoozedCount?: number;
   completedGoalsToday?: number;
   totalGoalsToday?: number;
+  focusMinutesToday?: number;
+  activeHabitsCount?: number;
+  upcomingDeadlinesCount?: number;
 };
+
+export type NudgeType =
+  | "deadline_reminder"
+  | "habit_nudge"
+  | "focus_prompt"
+  | "daily_goal"
+  | "mood_response"
+  | "day_summary"
+  | "celebration"
+  | "procrastination"
+  | "insight";
 
 const SYSTEM_PROMPT = `You are NudgeAI, a warm, friendly, and motivational productivity assistant. 
 You speak like a supportive best friend who also happens to be very organized.
@@ -33,45 +49,78 @@ Rules:
 - Never guilt-trip. Always frame positively.
 - Use occasional exclamation marks but don't overdo it.`;
 
+function buildToneInstruction(tone?: NudgeContext["aiTone"]) {
+  if (tone === "direct") {
+    return "Tone preference: direct. Be concise, clear, and practical while still sounding kind.";
+  }
+
+  if (tone === "motivational") {
+    return "Tone preference: motivational. Bring more energy, confidence, and forward momentum.";
+  }
+
+  return "Tone preference: friendly. Sound warm, supportive, and conversational.";
+}
+
+function buildSharedContext(context: NudgeContext) {
+  return [
+    `Time of day: ${context.timeOfDay}`,
+    `Mood: ${context.mood ?? "unknown"}`,
+    `Goals today: ${context.completedGoalsToday ?? 0}/${context.totalGoalsToday ?? 0}`,
+    `Focus minutes today: ${context.focusMinutesToday ?? 0}`,
+    `Active habits: ${context.activeHabitsCount ?? 0}`,
+    `Upcoming deadlines: ${context.upcomingDeadlinesCount ?? 0}`,
+    buildToneInstruction(context.aiTone),
+  ].join("\n");
+}
+
 export async function generateNudge(
-  type: "deadline_reminder" | "habit_nudge" | "focus_prompt" | "daily_goal" | "mood_response" | "day_summary" | "celebration" | "procrastination",
+  type: NudgeType,
   context: NudgeContext,
   additionalInfo?: string
 ): Promise<string> {
+  const sharedContext = buildSharedContext(context);
+
   const prompts: Record<string, string> = {
     deadline_reminder: `Generate a deadline reminder message for ${context.userName}. 
       Urgency: ${context.deadlineUrgency}. Times snoozed: ${context.snoozedCount || 0}. 
-      Current mood: ${context.mood || "unknown"}. Time of day: ${context.timeOfDay}.
+      ${sharedContext}
       ${additionalInfo ? `Additional context: ${additionalInfo}` : ""}`,
 
     habit_nudge: `Generate a habit check-in nudge for ${context.userName}. 
       Current streak: ${context.streakCount || 0} days. 
-      Mood: ${context.mood || "unknown"}. Time: ${context.timeOfDay}.
+      ${sharedContext}
       ${additionalInfo ? `Habit: ${additionalInfo}` : ""}`,
 
     focus_prompt: `Generate a focus session encouragement for ${context.userName}. 
-      Mood: ${context.mood || "unknown"}. Time: ${context.timeOfDay}.
+      ${sharedContext}
       ${additionalInfo ? `Task: ${additionalInfo}` : ""}`,
 
     daily_goal: `Generate a morning goal-setting prompt for ${context.userName}. 
-      Mood: ${context.mood || "unknown"}. Time: ${context.timeOfDay}.
+      ${sharedContext}
       ${additionalInfo || ""}`,
 
     mood_response: `Respond warmly to ${context.userName}'s mood check-in. 
       They reported mood level: ${context.mood}/5. Time: ${context.timeOfDay}.
+      ${buildToneInstruction(context.aiTone)}
       ${additionalInfo ? `Their note: ${additionalInfo}` : ""}`,
 
     day_summary: `Write a brief, warm daily summary for ${context.userName}. 
       They completed ${context.completedGoalsToday}/${context.totalGoalsToday} goals today.
-      Mood: ${context.mood || "unknown"}.
+      ${sharedContext}
+      ${additionalInfo ? `Details: ${additionalInfo}` : ""}`,
+
+    insight: `Write one practical, personalized insight for ${context.userName} based on their recent patterns.
+      ${sharedContext}
+      Focus on one useful pattern, why it matters, and one gentle next step.
       ${additionalInfo ? `Details: ${additionalInfo}` : ""}`,
 
     celebration: `Write a celebration message for ${context.userName}. 
+      ${buildToneInstruction(context.aiTone)}
       ${additionalInfo ? `Achievement: ${additionalInfo}` : ""}`,
 
     procrastination: `${context.userName} has snoozed a reminder ${context.snoozedCount} times. 
       Gently and kindly acknowledge this pattern and offer support. 
-      Mood: ${context.mood || "unknown"}.
+      ${sharedContext}
       ${additionalInfo ? `Task: ${additionalInfo}` : ""}`,
   };
 
@@ -100,6 +149,7 @@ export async function generateNudge(
       daily_goal: "Good morning! What are your top goals for today?",
       mood_response: "Thanks for checking in! Every feeling is valid.",
       day_summary: "Another day done! You showed up, and that matters.",
+      insight: "A small pattern is showing up: your steady days come from keeping the next step simple and visible.",
       celebration: "Amazing work! You should be proud!",
       procrastination: "Hey, no pressure! Want to break this task into smaller steps?",
     };
