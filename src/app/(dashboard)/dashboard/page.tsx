@@ -66,18 +66,21 @@ const MOOD_MAP: Record<MoodLevel, { label: string; emoji: string }> = {
 };
 
 const URGENCY_STYLES: Record<string, string> = {
-  urgent: "border-l-[var(--danger)] bg-red-50 text-[var(--danger)]",
-  high: "border-l-[var(--warning)] bg-orange-50 text-orange-700",
-  medium: "border-l-[var(--primary)] bg-purple-50 text-[var(--primary)]",
-  low: "border-l-[var(--success)] bg-green-50 text-[var(--success)]",
+  urgent: "border-l-[var(--danger)] bg-[rgba(186,122,107,0.12)] text-[var(--danger)]",
+  high: "border-l-[var(--warning)] bg-[rgba(214,177,111,0.16)] text-[#8d6421]",
+  medium: "border-l-[var(--primary)] bg-[rgba(139,111,90,0.1)] text-[var(--primary-dark)]",
+  low: "border-l-[var(--success)] bg-[rgba(123,154,123,0.12)] text-[var(--success)]",
 };
 
 const URGENCY_BADGE: Record<string, string> = {
-  urgent: "bg-red-100 text-red-800",
-  high: "bg-orange-100 text-orange-800",
-  medium: "bg-yellow-100 text-yellow-800",
-  low: "bg-green-100 text-green-800",
+  urgent: "bg-[rgba(186,122,107,0.14)] text-[var(--danger)]",
+  high: "bg-[rgba(214,177,111,0.18)] text-[#8d6421]",
+  medium: "bg-[rgba(139,111,90,0.14)] text-[var(--primary-dark)]",
+  low: "bg-[rgba(123,154,123,0.16)] text-[var(--success)]",
 };
+
+const PANEL_CLASS =
+  "cozy-card rounded-[1.7rem] p-5 shadow-[0_18px_40px_rgba(84,60,43,0.08)]";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -132,7 +135,7 @@ function getDeadlineUrgency(dueDate: string): string {
 
 function CardSkeleton() {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm animate-pulse">
+    <div className={`${PANEL_CLASS} animate-pulse`}>
       <div className="h-4 bg-[var(--border)] rounded w-1/3 mb-4" />
       <div className="space-y-3">
         <div className="h-3 bg-[var(--border)] rounded w-full" />
@@ -362,23 +365,90 @@ export default function DashboardPage() {
 
   const completedGoals = goals.filter((g) => g.completed).length;
   const totalGoals = goals.length;
+  const completionRate = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
 
   return (
     <>
       <Header title="Dashboard" />
 
-      {/* Greeting */}
-      <section className="mb-8">
-        <h2 className="text-3xl font-bold text-[var(--foreground)]">
-          {getGreeting()}, {firstName}!
-        </h2>
-        <p className="text-[var(--muted)] mt-1">{getMotivationalSubtext()}</p>
+      <section className="mb-8 grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="glass-strong rounded-[2rem] p-6 sm:p-7">
+          <div className="section-label">
+            <span className="status-dot" />
+            your daily brief
+          </div>
+          <h2 className="mt-5 text-3xl font-semibold text-[var(--foreground)] sm:text-4xl" data-display="true">
+            {getGreeting()}, {firstName}!
+          </h2>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
+            {getMotivationalSubtext()} You have {totalGoals || "a fresh set of"} goal
+            {totalGoals === 1 ? "" : "s"}, {deadlines.length} upcoming deadline
+            {deadlines.length === 1 ? "" : "s"}, and {habits.length} active habit
+            {habits.length === 1 ? "" : "s"} in motion.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <div className="rounded-2xl bg-[rgba(255,250,244,0.82)] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Goals</p>
+              <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">{completedGoals}/{Math.max(totalGoals, 1)} done</p>
+            </div>
+            <div className="rounded-2xl bg-[rgba(255,250,244,0.82)] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Focus</p>
+              <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">{focusStats.todayMinutes} min</p>
+            </div>
+            <div className="rounded-2xl bg-[rgba(255,250,244,0.82)] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Completion</p>
+              <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">{completionRate}%</p>
+            </div>
+          </div>
+        </div>
+
+        <div className={`${PANEL_CLASS} flex flex-col justify-between`}>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
+              calm momentum
+            </p>
+            <p className="mt-3 text-2xl font-semibold text-[var(--foreground)]" data-display="true">
+              Keep the list small and the follow-through warm.
+            </p>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            {[
+              ["Today", totalGoals > 0 ? `${totalGoals} goals on deck` : "A clean slate to shape"],
+              ["Focus streak", focusStats.sessionsToday > 0 ? `${focusStats.sessionsToday} session${focusStats.sessionsToday === 1 ? "" : "s"}` : "Start a fresh session"],
+              ["Habits", habits.length > 0 ? `${habits.length} active routine${habits.length === 1 ? "" : "s"}` : "No active habits yet"],
+            ].map(([label, value]) => (
+              <div key={label} className="flex items-center justify-between rounded-2xl bg-[rgba(255,250,244,0.72)] px-4 py-3 text-sm">
+                <span className="font-medium text-[var(--muted)]">{label}</span>
+                <span className="text-right font-semibold text-[var(--foreground)]">{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* Mood Quick Check-in */}
       <section className="mb-8">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wide mb-3">
+        <div className={`${PANEL_CLASS} overflow-hidden`}>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
+                mood check-in
+              </p>
+              <h3 className="mt-2 text-xl font-semibold text-[var(--foreground)]" data-display="true">
+                How are you feeling?
+              </h3>
+            </div>
+            <div className="hidden rounded-full bg-[rgba(210,143,108,0.12)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)] sm:block">
+              adjust your AI tone
+            </div>
+          </div>
+
+          <p className="mb-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+            Your check-in helps NudgeAI respond with the right level of energy, encouragement, and pacing.
+          </p>
+
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
             How are you feeling?
           </h3>
           {loadingMood ? (
@@ -391,9 +461,9 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : mood ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4 rounded-[1.4rem] bg-[rgba(255,250,244,0.76)] px-4 py-4">
               <span className="text-4xl">{MOOD_MAP[mood].emoji}</span>
-              <div>
+              <div className="flex-1">
                 <p className="font-semibold text-[var(--foreground)]">
                   {MOOD_MAP[mood].label}
                 </p>
@@ -401,15 +471,18 @@ export default function DashboardPage() {
                   Logged for today. You can update it anytime.
                 </p>
               </div>
+              <div className="hidden rounded-full bg-[rgba(123,154,123,0.16)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--success)] sm:block">
+                synced
+              </div>
             </div>
           ) : (
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               {([1, 2, 3, 4, 5] as MoodLevel[]).map((level) => (
                 <button
                   key={level}
                   onClick={() => submitMood(level)}
                   disabled={moodSubmitting}
-                  className="flex flex-col items-center gap-1 p-2 rounded-xl border border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--surface-hover)] transition-all cursor-pointer disabled:opacity-50"
+                  className="flex min-w-[5rem] flex-col items-center gap-1 rounded-[1.2rem] border border-[var(--border)] bg-[rgba(255,250,244,0.82)] px-3 py-3 hover:border-[var(--primary)] hover:bg-[var(--surface-hover)] transition-all cursor-pointer disabled:opacity-50"
                   title={MOOD_MAP[level].label}
                 >
                   <span className="text-2xl">{MOOD_MAP[level].emoji}</span>
@@ -423,10 +496,8 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Main Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Today's Goals */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm md:col-span-2 lg:col-span-2">
+        <div className={`${PANEL_CLASS} md:col-span-2 lg:col-span-2`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Target size={18} className="text-[var(--primary)]" />
@@ -442,7 +513,7 @@ export default function DashboardPage() {
             {goals.length < 5 && (
               <button
                 onClick={() => setShowGoalInput(true)}
-                className="flex items-center gap-1 text-xs font-medium text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors"
+                className="flex items-center gap-1 rounded-full bg-[rgba(139,111,90,0.08)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] hover:bg-[rgba(139,111,90,0.14)] transition-colors"
               >
                 <Plus size={14} />
                 Add
@@ -472,7 +543,7 @@ export default function DashboardPage() {
               {goals.map((goal) => (
                 <li
                   key={goal.id}
-                  className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--surface-hover)] transition-colors group"
+                  className="group flex items-center gap-3 rounded-[1rem] p-3 hover:bg-[var(--surface-hover)] transition-colors"
                 >
                   <button
                     onClick={() => toggleGoal(goal.id, goal.completed)}
@@ -513,7 +584,7 @@ export default function DashboardPage() {
               <button
                 onClick={addGoal}
                 disabled={addingGoal || !newGoalTitle.trim()}
-                className="px-3 py-2 text-sm font-medium text-white bg-[var(--primary)] rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity"
+                className="rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
               >
                 {addingGoal ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -536,6 +607,10 @@ export default function DashboardPage() {
           {/* Progress bar */}
           {totalGoals > 0 && (
             <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between text-xs text-[var(--muted)]">
+                <span>Progress today</span>
+                <span>{completionRate}% complete</span>
+              </div>
               <div className="h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[var(--success)] rounded-full transition-all duration-500"
@@ -548,8 +623,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Focus Stats */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className={`${PANEL_CLASS} bg-[linear-gradient(180deg,rgba(255,251,247,0.96),rgba(247,236,226,0.88))]`}>
           <div className="flex items-center gap-2 mb-4">
             <Timer size={18} className="text-[var(--accent)]" />
             <h3 className="font-semibold text-[var(--foreground)]">Focus</h3>
@@ -575,7 +649,7 @@ export default function DashboardPage() {
 
               <a
                 href="/focus"
-                className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-white bg-[var(--accent)] rounded-xl hover:opacity-90 transition-opacity"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
               >
                 <Play size={14} />
                 Start Pomodoro
@@ -584,8 +658,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Active Deadlines */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm md:col-span-2 lg:col-span-1">
+        <div className={`${PANEL_CLASS} md:col-span-2 lg:col-span-1`}>
           <div className="flex items-center gap-2 mb-4">
             <CalendarClock size={18} className="text-[var(--danger)]" />
             <h3 className="font-semibold text-[var(--foreground)]">
@@ -617,7 +690,7 @@ export default function DashboardPage() {
                 return (
                   <li
                     key={d.id}
-                    className={`p-3 rounded-xl border-l-4 ${URGENCY_STYLES[urgency]}`}
+                    className={`rounded-[1.1rem] border-l-4 p-3 ${URGENCY_STYLES[urgency]}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-medium text-[var(--foreground)] leading-tight">
@@ -649,8 +722,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Habit Streaks */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className={`${PANEL_CLASS}`}>
           <div className="flex items-center gap-2 mb-4">
             <Flame size={18} className="text-orange-500" />
             <h3 className="font-semibold text-[var(--foreground)]">
@@ -680,7 +752,7 @@ export default function DashboardPage() {
               {habits.map((habit) => (
                 <li
                   key={habit.id}
-                  className="flex items-center justify-between gap-2 p-2.5 rounded-xl hover:bg-[var(--surface-hover)] transition-colors"
+                  className="flex items-center justify-between gap-2 rounded-[1rem] p-3 hover:bg-[var(--surface-hover)] transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[var(--foreground)] truncate">
@@ -710,7 +782,7 @@ export default function DashboardPage() {
                     <button
                       onClick={() => checkinHabit(habit.id)}
                       disabled={checkinLoadingId === habit.id}
-                      className="px-3 py-1.5 text-xs font-medium text-[var(--primary)] border border-[var(--primary)] rounded-lg hover:bg-[var(--primary)] hover:text-white transition-colors disabled:opacity-50"
+                      className="rounded-lg border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-colors disabled:opacity-50"
                     >
                       {checkinLoadingId === habit.id ? (
                         <Loader2 size={12} className="animate-spin" />
@@ -734,7 +806,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* AI Nudge Card */}
         <div className="rounded-[1.75rem] border border-[rgba(139,111,90,0.18)] bg-[linear-gradient(180deg,rgba(141,113,90,0.96),rgba(198,170,147,0.96))] p-5 text-white shadow-[0_18px_42px_rgba(109,84,65,0.18)] md:col-span-2 lg:col-span-1">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={18} />
