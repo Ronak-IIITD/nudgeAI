@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateNudge, type NudgeContext } from "@/lib/ai";
+import { generateNudge, type NudgeContext, type NudgeType } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +13,19 @@ type BrowserNotificationPayload = {
   actionUrl: string;
   type: string;
   tag: string;
+};
+
+type NotificationCandidate = {
+  score: number;
+  reason: string;
+  type: string;
+  title: string;
+  actionUrl: string;
+  tag: string;
+  nudgeType?: NudgeType;
+  context?: Partial<NudgeContext>;
+  additionalInfo?: string;
+  fallbackBody?: string;
 };
 
 function getTimeOfDay(date: Date): "morning" | "afternoon" | "evening" {
@@ -55,6 +68,38 @@ function isWithinQuietHours(now: Date, start?: string | null, end?: string | nul
   }
 
   return currentMinutes >= startMinutes || currentMinutes < endMinutes;
+}
+
+async function buildPayload(
+  candidate: NotificationCandidate,
+  nudgeContext: NudgeContext,
+  now: Date
+): Promise<BrowserNotificationPayload> {
+  let body = candidate.fallbackBody || "You have a thoughtful reminder waiting.";
+
+  if (candidate.nudgeType) {
+    try {
+      body = await generateNudge(
+        candidate.nudgeType,
+        {
+          ...nudgeContext,
+          ...candidate.context,
+        },
+        candidate.additionalInfo
+      );
+    } catch {
+      body = candidate.fallbackBody || body;
+    }
+  }
+
+  return {
+    id: `${candidate.type}-${now.toISOString()}`,
+    title: candidate.title,
+    body,
+    actionUrl: candidate.actionUrl,
+    type: candidate.type,
+    tag: candidate.tag,
+  };
 }
 
 export async function GET() {
@@ -120,11 +165,11 @@ export async function GET() {
           dueDate: { gte: now },
         },
         orderBy: { dueDate: "asc" },
-        take: 3,
+        take: 5,
       }),
       prisma.habit.findMany({
         where: { userId, active: true },
-        take: 6,
+        take: 8,
         include: {
           checkins: {
             where: {
@@ -144,133 +189,164 @@ export async function GET() {
     ]);
 
     const timeOfDay = getTimeOfDay(now);
+    const completedGoalsToday = goals.filter((goal) => goal.completed).length;
+    const remainingGoals = goals.filter((goal) => !goal.completed);
+    const incompleteHabits = habits.filter((habit) => habit.checkins.length === 0);
+
     const nudgeContext: NudgeContext = {
       userName: user.name || "there",
       aiTone: user.aiTone as NudgeContext["aiTone"],
       mood: latestMood?.mood,
       timeOfDay,
-      completedGoalsToday: goals.filter((goal) => goal.completed).length,
+      completedGoalsToday,
       totalGoalsToday: goals.length,
       activeHabitsCount: habits.length,
       upcomingDeadlinesCount: deadlines.length,
     };
 
-    let candidate: BrowserNotificationPayload | null = null;
+    const candidates: NotificationCandidate[] = [];
 
-    const urgentDeadline = deadlines.find((deadline) => minutesUntil(deadline.dueDate) <= 180);
-    if (urgentDeadline) {
-      const urgency = getDeadlineUrgency(minutesUntil(urgentDeadline.dueDate));
+    for (const deadline of deadlines) {
+      const minutesLeft = minutesUntil(deadline.dueDate);
+      const urgency = getDeadlineUrgency(minutesLeft);
+      let score = 0;
 
-      const body = await generateNudge(
-        "deadline_reminder",
-        {
-          ...nudgeContext,
-          deadlineUrgency: urgency,
-          snoozedCount: urgentDeadline.snoozedCount,
-        },
-        `${urgentDeadline.title} is due ${urgentDeadline.dueDate.toLocaleString()}`
-      );
+      if (urgency === "overdue") score += 140;
+      else if (urgency === "high") score += 125;
+      else if (urgency === "medium") score += 95;
+      else score += 55;
 
-      candidate = {
-        id: `deadline-${urgentDeadline.id}`,
-        title: `Deadline coming up: ${urgentDeadline.title}`,
-        body,
-        actionUrl: "/deadlines",
+      score += Math.min(deadline.snoozedCount * 6, 24);
+
+      if (deadline.priority === "urgent") score += 20;
+      else if (deadline.priority === "high") score += 12;
+
+      if (latestMood?.mood && latestMood.mood <= 2 && urgency !== "overdue") {
+        score -= 8;
+      }
+
+      candidates.push({
+        score,
+        reason: `deadline-${urgency}`,
         type: "browser_deadline",
-        tag: `deadline-${urgentDeadline.id}`,
-      };
+        title: `Deadline coming up: ${deadline.title}`,
+        actionUrl: "/deadlines",
+        tag: `deadline-${deadline.id}`,
+        nudgeType: deadline.snoozedCount >= 3 ? "procrastination" : "deadline_reminder",
+        context: {
+          deadlineUrgency: urgency,
+          snoozedCount: deadline.snoozedCount,
+        },
+        additionalInfo: `${deadline.title} is due ${deadline.dueDate.toLocaleString()}`,
+        fallbackBody: `Heads up - ${deadline.title} is coming up soon.`,
+      });
     }
 
-    if (!candidate) {
-      const incompleteHabit = habits.find((habit) => habit.checkins.length === 0);
+    for (const habit of incompleteHabits) {
+      let score = 44 + Math.min(habit.currentStreak, 10) * 3;
+      if (timeOfDay === "evening") score += 10;
+      if (latestMood?.mood && latestMood.mood >= 4) score += 4;
 
-      if (incompleteHabit) {
-        const procrastinatedGoals = goals.filter((goal) => !goal.completed);
-        const shouldUseProcrastinationTone =
-          timeOfDay === "evening" && procrastinatedGoals.length >= 3;
-
-        const body = await generateNudge(
-          shouldUseProcrastinationTone ? "procrastination" : "habit_nudge",
-          {
-            ...nudgeContext,
-            streakCount: incompleteHabit.currentStreak,
-            snoozedCount: procrastinatedGoals.length,
-          },
-          shouldUseProcrastinationTone
-            ? `Unfinished goals: ${procrastinatedGoals.slice(0, 3).map((goal) => goal.title).join(", ")}. Habit still open: ${incompleteHabit.name}`
-            : incompleteHabit.name
-        );
-
-        candidate = {
-          id: `habit-${incompleteHabit.id}`,
-          title: `Little habit nudge: ${incompleteHabit.name}`,
-          body,
-          actionUrl: "/habits",
-          type: "browser_habit",
-          tag: `habit-${incompleteHabit.id}`,
-        };
-      }
+      candidates.push({
+        score,
+        reason: "habit-open",
+        type: "browser_habit",
+        title: `Little habit nudge: ${habit.name}`,
+        actionUrl: "/habits",
+        tag: `habit-${habit.id}`,
+        nudgeType: "habit_nudge",
+        context: {
+          streakCount: habit.currentStreak,
+        },
+        additionalInfo: habit.name,
+        fallbackBody: `A quick check-in on ${habit.name} could keep the streak warm.`,
+      });
     }
 
-    if (!candidate && goals.length > 0) {
-      const remainingGoals = goals.filter((goal) => !goal.completed);
-      if (remainingGoals.length > 0) {
-        const body = await generateNudge(
-          "daily_goal",
-          nudgeContext,
-          `Remaining goals: ${remainingGoals.slice(0, 3).map((goal) => goal.title).join(", ")}`
-        );
+    if (remainingGoals.length > 0) {
+      let score = 0;
+      if (timeOfDay === "morning") score += 78;
+      else if (timeOfDay === "afternoon") score += 68;
+      else score += 62;
 
-        candidate = {
-          id: `goals-${today.toISOString()}`,
-          title: "A gentle check-in for today",
-          body,
-          actionUrl: "/goals",
-          type: "browser_goal",
-          tag: `goals-${today.toISOString()}`,
-        };
-      }
+      score += Math.min(remainingGoals.length * 4, 20);
+
+      if (completedGoalsToday > 0) score += 6;
+      if (latestMood?.mood && latestMood.mood <= 2) score -= 6;
+
+      candidates.push({
+        score,
+        reason: "goals-remaining",
+        type: "browser_goal",
+        title: timeOfDay === "morning" ? "Shape today with a clear next step" : "A gentle check-in for today",
+        actionUrl: "/goals",
+        tag: `goals-${today.toISOString()}`,
+        nudgeType: timeOfDay === "evening" && remainingGoals.length >= 3 ? "procrastination" : "daily_goal",
+        context: {
+          snoozedCount: remainingGoals.length,
+        },
+        additionalInfo: `Remaining goals: ${remainingGoals.slice(0, 3).map((goal) => goal.title).join(", ")}`,
+        fallbackBody: "A quick review of your remaining goals could make the rest of the day feel lighter.",
+      });
     }
 
-    if (!candidate && timeOfDay === "morning" && !latestMood) {
-      candidate = {
-        id: `mood-${today.toISOString()}`,
-        title: "Quick check-in?",
-        body: "Before the day gets busy, how are you feeling? A tiny mood check helps me nudge you better.",
-        actionUrl: "/dashboard",
+    if (timeOfDay === "morning" && !latestMood) {
+      candidates.push({
+        score: 52,
+        reason: "morning-mood-gap",
         type: "browser_mood",
+        title: "Quick check-in?",
+        actionUrl: "/dashboard",
         tag: `mood-${today.toISOString()}`,
-      };
+        fallbackBody: "Before the day gets busy, how are you feeling? A tiny mood check helps me nudge you better.",
+      });
     }
 
-    if (!candidate) {
+    if (candidates.length === 0) {
       return NextResponse.json({ notification: null, reason: "no-candidate" });
     }
 
-    const existingDuplicate = await prisma.notification.findFirst({
-      where: {
-        userId,
-        type: candidate.type,
-        title: candidate.title,
-        createdAt: { gte: new Date(now.getTime() - 8 * 60 * 60 * 1000) },
-      },
-    });
+    candidates.sort((a, b) => b.score - a.score);
 
-    if (existingDuplicate) {
+    let selectedCandidate: NotificationCandidate | null = null;
+
+    for (const candidate of candidates) {
+      const existingDuplicate = await prisma.notification.findFirst({
+        where: {
+          userId,
+          type: candidate.type,
+          title: candidate.title,
+          createdAt: { gte: new Date(now.getTime() - 8 * 60 * 60 * 1000) },
+        },
+      });
+
+      if (!existingDuplicate) {
+        selectedCandidate = candidate;
+        break;
+      }
+    }
+
+    if (!selectedCandidate) {
       return NextResponse.json({ notification: null, reason: "duplicate" });
     }
+
+    const notification = await buildPayload(selectedCandidate, nudgeContext, now);
 
     await prisma.notification.create({
       data: {
         userId,
-        type: candidate.type,
-        title: candidate.title,
-        message: candidate.body,
-        actionUrl: candidate.actionUrl,
+        type: notification.type,
+        title: notification.title,
+        message: notification.body,
+        actionUrl: notification.actionUrl,
       },
     });
 
-    return NextResponse.json({ notification: candidate });
+    return NextResponse.json({
+      notification,
+      reason: selectedCandidate.reason,
+      score: selectedCandidate.score,
+    });
   } catch (error) {
     console.error("GET /api/notifications/browser error:", error);
     return NextResponse.json(
