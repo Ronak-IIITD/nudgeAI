@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  getRequiredUserId,
+  internalServerError,
+  notFound,
+  unauthorized,
+} from "@/lib/api";
+import { parseDateInput } from "@/lib/dates";
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const { id } = await params;
     const body = await req.json();
 
@@ -22,16 +26,21 @@ export async function PATCH(
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: "Focus session not found" },
-        { status: 404 }
-      );
+      return notFound("Focus session");
     }
 
     const { endedAt, completed, totalFocusMinutes, currentRound } = body;
 
     const updateData: Record<string, unknown> = {};
-    if (endedAt !== undefined) updateData.endedAt = new Date(endedAt);
+    if (endedAt !== undefined) {
+      const parsedEndedAt = parseDateInput(String(endedAt));
+      if (!parsedEndedAt) {
+        return NextResponse.json({ error: "Invalid endedAt" }, { status: 400 });
+      }
+
+      updateData.endedAt = parsedEndedAt;
+    }
+
     if (completed !== undefined) updateData.completed = completed;
     if (totalFocusMinutes !== undefined) updateData.totalFocusMinutes = totalFocusMinutes;
     if (currentRound !== undefined) updateData.currentRound = currentRound;
@@ -43,10 +52,6 @@ export async function PATCH(
 
     return NextResponse.json(focusSession);
   } catch (error) {
-    console.error("PATCH /api/focus/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("PATCH /api/focus/[id]", error);
   }
 }

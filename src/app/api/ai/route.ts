@@ -1,39 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateNudge, type NudgeContext, type NudgeType } from "@/lib/ai";
-
-function getTimeOfDayInTimezone(timezone?: string | null): "morning" | "afternoon" | "evening" {
-  const now = new Date();
-
-  try {
-    const hourString = new Intl.DateTimeFormat("en-US", {
-      hour: "numeric",
-      hour12: false,
-      timeZone: timezone || "UTC",
-    }).format(now);
-    const hour = Number(hourString);
-
-    if (hour < 12) return "morning";
-    if (hour < 18) return "afternoon";
-    return "evening";
-  } catch {
-    const hour = now.getUTCHours();
-    if (hour < 12) return "morning";
-    if (hour < 18) return "afternoon";
-    return "evening";
-  }
-}
+import { badRequest, getRequiredUserId, internalServerError, unauthorized } from "@/lib/api";
+import { getTimeOfDayInTimezone, getUtcDayRange } from "@/lib/dates";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const body = await req.json();
     const { type, context, additionalInfo } = body as {
       type?: NudgeType;
@@ -42,13 +19,10 @@ export async function POST(req: NextRequest) {
     };
 
     if (!type) {
-      return NextResponse.json(
-        { error: "type is required" },
-        { status: 400 }
-      );
+      return badRequest("type is required");
     }
 
-    // Build NudgeContext from provided context or defaults
+    const { startDate, endDate } = getUtcDayRange(new Date());
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -68,8 +42,8 @@ export async function POST(req: NextRequest) {
         dailyGoals: {
           where: {
             date: {
-              gte: new Date(new Date().setUTCHours(0, 0, 0, 0)),
-              lt: new Date(new Date().setUTCHours(24, 0, 0, 0)),
+              gte: startDate,
+              lt: endDate,
             },
           },
           select: { completed: true },
@@ -77,8 +51,8 @@ export async function POST(req: NextRequest) {
         focusSessions: {
           where: {
             startedAt: {
-              gte: new Date(new Date().setUTCHours(0, 0, 0, 0)),
-              lt: new Date(new Date().setUTCHours(24, 0, 0, 0)),
+              gte: startDate,
+              lt: endDate,
             },
           },
           select: { totalFocusMinutes: true },
@@ -127,10 +101,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message });
   } catch (error) {
-    console.error("POST /api/ai error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("POST /api/ai", error);
   }
 }

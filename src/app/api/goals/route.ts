@@ -1,41 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-function normalizeToMidnightUTC(date: Date): Date {
-  const d = new Date(date);
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
-}
+import { badRequest, getRequiredUserId, internalServerError, unauthorized } from "@/lib/api";
+import { getUtcDayRange, parseDayParam } from "@/lib/dates";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const { searchParams } = new URL(req.url);
     const dateParam = searchParams.get("date");
+    const targetDate = dateParam ? parseDayParam(dateParam) : parseDayParam("today");
 
-    let targetDate: Date;
-    if (!dateParam || dateParam === "today") {
-      targetDate = normalizeToMidnightUTC(new Date());
-    } else {
-      targetDate = normalizeToMidnightUTC(new Date(dateParam));
+    if (!targetDate) {
+      return badRequest("Invalid date");
     }
 
-    const nextDay = new Date(targetDate);
-    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+    const { startDate, endDate } = getUtcDayRange(targetDate);
 
     const goals = await prisma.dailyGoal.findMany({
       where: {
         userId,
         date: {
-          gte: targetDate,
-          lt: nextDay,
+          gte: startDate,
+          lt: endDate,
         },
       },
       orderBy: { order: "asc" },
@@ -44,46 +34,37 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(goals);
   } catch (error) {
-    console.error("GET /api/goals error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("GET /api/goals", error);
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const body = await req.json();
     const { title, date, deadlineId } = body;
 
     if (!title) {
-      return NextResponse.json(
-        { error: "title is required" },
-        { status: 400 }
-      );
+      return badRequest("title is required");
     }
 
-    const targetDate = date
-      ? normalizeToMidnightUTC(new Date(date))
-      : normalizeToMidnightUTC(new Date());
+    const targetDate = date ? parseDayParam(date) : parseDayParam("today");
+    if (!targetDate) {
+      return badRequest("Invalid date");
+    }
 
-    // Auto-set order to the next available position
-    const nextDay = new Date(targetDate);
-    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+    const { startDate, endDate } = getUtcDayRange(targetDate);
 
     const existingCount = await prisma.dailyGoal.count({
       where: {
         userId,
         date: {
-          gte: targetDate,
-          lt: nextDay,
+          gte: startDate,
+          lt: endDate,
         },
       },
     });
@@ -101,10 +82,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(goal, { status: 201 });
   } catch (error) {
-    console.error("POST /api/goals error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("POST /api/goals", error);
   }
 }
