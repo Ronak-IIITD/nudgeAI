@@ -1,20 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import * as chrono from "chrono-node";
+import {
+  badRequest,
+  getRequiredUserId,
+  internalServerError,
+  notFound,
+  unauthorized,
+} from "@/lib/api";
+import {
+  buildReminderSchedule,
+  normalizeReminderIntervals,
+  parseDeadlineDueDate,
+} from "@/lib/deadlines";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const { id } = await params;
 
     const deadline = await prisma.deadline.findFirst({
@@ -23,16 +31,12 @@ export async function GET(
     });
 
     if (!deadline) {
-      return NextResponse.json({ error: "Deadline not found" }, { status: 404 });
+      return notFound("Deadline");
     }
 
     return NextResponse.json(deadline);
   } catch (error) {
-    console.error("GET /api/deadlines/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("GET /api/deadlines/[id]", error);
   }
 }
 
@@ -41,12 +45,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const { id } = await params;
     const body = await req.json();
 
@@ -56,25 +59,20 @@ export async function PATCH(
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Deadline not found" }, { status: 404 });
+      return notFound("Deadline");
     }
 
     const { title, description, dueDate, priority, completed, category, reminderIntervals } = body;
 
-    // Parse dueDate if provided
+    if (reminderIntervals !== undefined && !Array.isArray(reminderIntervals)) {
+      return badRequest("reminderIntervals must be an array of minutes");
+    }
+
     let parsedDate: Date | undefined;
     if (dueDate !== undefined) {
-      if (!isNaN(Date.parse(dueDate))) {
-        parsedDate = new Date(dueDate);
-      } else {
-        const chronoParsed = chrono.parseDate(dueDate);
-        if (!chronoParsed) {
-          return NextResponse.json(
-            { error: "Could not parse dueDate" },
-            { status: 400 }
-          );
-        }
-        parsedDate = chronoParsed;
+      parsedDate = parseDeadlineDueDate(dueDate) ?? undefined;
+      if (!parsedDate) {
+        return badRequest("Could not parse dueDate");
       }
     }
 
@@ -98,21 +96,19 @@ export async function PATCH(
     // If dueDate or reminderIntervals changed, recreate reminders
     if (parsedDate || reminderIntervals) {
       const finalDate = parsedDate ?? existing.dueDate;
-      const finalIntervals: number[] =
-        reminderIntervals ?? existing.reminderIntervals;
+      const finalIntervals =
+        reminderIntervals === undefined
+          ? existing.reminderIntervals
+          : normalizeReminderIntervals(reminderIntervals);
 
-      // Delete old reminders
       await prisma.reminder.deleteMany({ where: { deadlineId: id } });
 
-      // Create new reminders
-      const reminderData = finalIntervals
-        .map((minutesBefore: number) => ({
+      const reminderData = buildReminderSchedule(finalDate, finalIntervals).map(
+        (reminder) => ({
           deadlineId: id,
-          scheduledAt: new Date(
-            finalDate.getTime() - minutesBefore * 60 * 1000
-          ),
-        }))
-        .filter((r) => r.scheduledAt > new Date());
+          scheduledAt: reminder.scheduledAt,
+        })
+      );
 
       if (reminderData.length > 0) {
         await prisma.reminder.createMany({ data: reminderData });
@@ -127,11 +123,7 @@ export async function PATCH(
 
     return NextResponse.json(deadline);
   } catch (error) {
-    console.error("PATCH /api/deadlines/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("PATCH /api/deadlines/[id]", error);
   }
 }
 
@@ -140,12 +132,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const { id } = await params;
 
     const existing = await prisma.deadline.findFirst({
@@ -153,17 +144,13 @@ export async function DELETE(
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Deadline not found" }, { status: 404 });
+      return notFound("Deadline");
     }
 
     await prisma.deadline.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/deadlines/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("DELETE /api/deadlines/[id]", error);
   }
 }

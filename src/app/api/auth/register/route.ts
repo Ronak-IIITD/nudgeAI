@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { badRequest, internalServerError } from "@/lib/api";
 
 export async function POST(request: Request) {
   try {
@@ -8,17 +9,11 @@ export async function POST(request: Request) {
     const { name, email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
+      return badRequest("Email and password are required");
     }
 
     if (password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters" },
-        { status: 400 }
-      );
+      return badRequest("Password must be at least 8 characters");
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -51,10 +46,6 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Registration error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("POST /api/auth/register", error);
   }
 }

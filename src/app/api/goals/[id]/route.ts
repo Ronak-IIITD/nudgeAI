@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  getRequiredUserId,
+  internalServerError,
+  notFound,
+  unauthorized,
+} from "@/lib/api";
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const { id } = await params;
     const body = await req.json();
 
@@ -22,7 +25,7 @@ export async function PATCH(
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Goal not found" }, { status: 404 });
+      return notFound("Goal");
     }
 
     const { title, completed, winNote, order } = body;
@@ -49,11 +52,7 @@ export async function PATCH(
 
     return NextResponse.json(goal);
   } catch (error) {
-    console.error("PATCH /api/goals/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("PATCH /api/goals/[id]", error);
   }
 }
 
@@ -62,12 +61,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const { id } = await params;
 
     const existing = await prisma.dailyGoal.findFirst({
@@ -75,17 +73,13 @@ export async function DELETE(
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Goal not found" }, { status: 404 });
+      return notFound("Goal");
     }
 
     await prisma.dailyGoal.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/goals/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("DELETE /api/goals/[id]", error);
   }
 }

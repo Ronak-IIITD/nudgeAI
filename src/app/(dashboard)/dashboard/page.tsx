@@ -16,7 +16,11 @@ import {
   CalendarClock,
   TrendingUp,
 } from "lucide-react";
-import type { MoodLevel } from "@/types";
+import {
+  MOOD_EMOJIS,
+  MOOD_LABELS,
+  type MoodLevel,
+} from "@/types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -44,9 +48,26 @@ interface Habit {
   category: string;
 }
 
+interface HabitCheckin {
+  date: string;
+}
+
+interface ApiHabit {
+  id: string;
+  name: string;
+  category: string;
+  currentStreak: number;
+  checkins: HabitCheckin[];
+}
+
 interface FocusStats {
   todayMinutes: number;
   sessionsToday: number;
+}
+
+interface FocusSession {
+  completed: boolean;
+  totalFocusMinutes: number | null;
 }
 
 interface NudgeMessage {
@@ -56,14 +77,6 @@ interface NudgeMessage {
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-const MOOD_MAP: Record<MoodLevel, { label: string; emoji: string }> = {
-  1: { label: "Exhausted", emoji: "\u{1F62B}" },
-  2: { label: "Low", emoji: "\u{1F614}" },
-  3: { label: "Okay", emoji: "\u{1F610}" },
-  4: { label: "Good", emoji: "\u{1F60A}" },
-  5: { label: "Energized", emoji: "\u{1F525}" },
-};
 
 const URGENCY_STYLES: Record<string, string> = {
   urgent: "border-l-[var(--danger)] bg-[rgba(186,122,107,0.12)] text-[var(--danger)]",
@@ -127,6 +140,35 @@ function getDeadlineUrgency(dueDate: string): string {
   if (diffHours <= 72) return "high";
   if (diffHours <= 168) return "medium";
   return "low";
+}
+
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function isCheckinToday(date: string): boolean {
+  return date.startsWith(todayISO());
+}
+
+function mapHabitForDashboard(habit: ApiHabit): Habit {
+  return {
+    id: habit.id,
+    name: habit.name,
+    streak: habit.currentStreak,
+    completedToday: habit.checkins.some((checkin) => isCheckinToday(checkin.date)),
+    category: habit.category,
+  };
+}
+
+function getFocusStats(sessions: FocusSession[]): FocusStats {
+  const completedSessions = sessions.filter((session) => session.completed);
+  return {
+    todayMinutes: completedSessions.reduce(
+      (total, session) => total + (session.totalFocusMinutes ?? 0),
+      0
+    ),
+    sessionsToday: completedSessions.length,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -210,8 +252,8 @@ export default function DashboardPage() {
     try {
       const res = await fetch("/api/habits?active=true");
       if (res.ok) {
-        const data = await res.json();
-        setHabits(data);
+        const data: ApiHabit[] = await res.json();
+        setHabits(data.map(mapHabitForDashboard));
       }
     } catch {
       // silently fail
@@ -224,10 +266,8 @@ export default function DashboardPage() {
     try {
       const res = await fetch("/api/mood?date=today");
       if (res.ok) {
-        const data = await res.json();
-        if (data?.mood) {
-          setMood(data.mood as MoodLevel);
-        }
+        const data: Array<{ mood: MoodLevel }> = await res.json();
+        setMood(data[0]?.mood ?? null);
       }
     } catch {
       // silently fail
@@ -238,10 +278,10 @@ export default function DashboardPage() {
 
   const fetchFocusStats = useCallback(async () => {
     try {
-      const res = await fetch("/api/focus/stats?date=today");
+      const res = await fetch(`/api/focus?date=${todayISO()}`);
       if (res.ok) {
-        const data = await res.json();
-        setFocusStats(data);
+        const data: FocusSession[] = await res.json();
+        setFocusStats(getFocusStats(data));
       }
     } catch {
       // silently fail
@@ -252,9 +292,14 @@ export default function DashboardPage() {
 
   const fetchNudge = useCallback(async () => {
     try {
-      const res = await fetch("/api/nudge");
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "daily_goal" }),
+      });
+
       if (res.ok) {
-        const data = await res.json();
+        const data: NudgeMessage = await res.json();
         setNudge(data);
       }
     } catch {
@@ -462,10 +507,10 @@ export default function DashboardPage() {
             </div>
           ) : mood ? (
             <div className="flex items-center gap-4 rounded-[1.4rem] bg-[rgba(255,250,244,0.76)] px-4 py-4">
-              <span className="text-4xl">{MOOD_MAP[mood].emoji}</span>
+              <span className="text-4xl">{MOOD_EMOJIS[mood]}</span>
               <div className="flex-1">
                 <p className="font-semibold text-[var(--foreground)]">
-                  {MOOD_MAP[mood].label}
+                  {MOOD_LABELS[mood]}
                 </p>
                 <p className="text-xs text-[var(--muted)]">
                   Logged for today. You can update it anytime.
@@ -483,11 +528,11 @@ export default function DashboardPage() {
                   onClick={() => submitMood(level)}
                   disabled={moodSubmitting}
                   className="flex min-w-[5rem] flex-col items-center gap-1 rounded-[1.2rem] border border-[var(--border)] bg-[rgba(255,250,244,0.82)] px-3 py-3 hover:border-[var(--primary)] hover:bg-[var(--surface-hover)] transition-all cursor-pointer disabled:opacity-50"
-                  title={MOOD_MAP[level].label}
+                  title={MOOD_LABELS[level]}
                 >
-                  <span className="text-2xl">{MOOD_MAP[level].emoji}</span>
+                  <span className="text-2xl">{MOOD_EMOJIS[level]}</span>
                   <span className="text-[10px] text-[var(--muted)]">
-                    {MOOD_MAP[level].label}
+                    {MOOD_LABELS[level]}
                   </span>
                 </button>
               ))}

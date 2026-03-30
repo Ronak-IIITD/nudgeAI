@@ -1,46 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  getRequiredUserId,
+  internalServerError,
+  notFound,
+  unauthorized,
+} from "@/lib/api";
+import { getRecentHabitWindow } from "@/lib/habits";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const { id } = await params;
-
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    thirtyDaysAgo.setUTCHours(0, 0, 0, 0);
+    const recentWindowStart = getRecentHabitWindow();
 
     const habit = await prisma.habit.findFirst({
       where: { id, userId },
       include: {
         checkins: {
-          where: { date: { gte: thirtyDaysAgo } },
+          where: { date: { gte: recentWindowStart } },
           orderBy: { date: "desc" },
         },
       },
     });
 
     if (!habit) {
-      return NextResponse.json({ error: "Habit not found" }, { status: 404 });
+      return notFound("Habit");
     }
 
     return NextResponse.json(habit);
   } catch (error) {
-    console.error("GET /api/habits/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("GET /api/habits/[id]", error);
   }
 }
 
@@ -49,12 +46,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const { id } = await params;
     const body = await req.json();
 
@@ -63,7 +59,7 @@ export async function PATCH(
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Habit not found" }, { status: 404 });
+      return notFound("Habit");
     }
 
     const { name, description, category, frequency, customDays, active } = body;
@@ -83,11 +79,7 @@ export async function PATCH(
 
     return NextResponse.json(habit);
   } catch (error) {
-    console.error("PATCH /api/habits/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("PATCH /api/habits/[id]", error);
   }
 }
 
@@ -96,12 +88,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
 
-    const userId = (session.user as { id: string }).id;
     const { id } = await params;
 
     const existing = await prisma.habit.findFirst({
@@ -109,7 +100,7 @@ export async function DELETE(
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Habit not found" }, { status: 404 });
+      return notFound("Habit");
     }
 
     // Soft delete: set active = false
@@ -120,10 +111,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/habits/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("DELETE /api/habits/[id]", error);
   }
 }

@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateNudge, type NudgeContext, type NudgeType } from "@/lib/ai";
+import {
+  getRequiredUserId,
+  internalServerError,
+  notFound,
+  unauthorized,
+} from "@/lib/api";
+import { getTimeOfDay, normalizeToMidnightUTC } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -28,24 +33,11 @@ type NotificationCandidate = {
   fallbackBody?: string;
 };
 
-function getTimeOfDay(date: Date): "morning" | "afternoon" | "evening" {
-  const hour = date.getHours();
-  if (hour < 12) return "morning";
-  if (hour < 18) return "afternoon";
-  return "evening";
-}
-
 function getDeadlineUrgency(minutesLeft: number): "low" | "medium" | "high" | "overdue" {
   if (minutesLeft <= 0) return "overdue";
   if (minutesLeft <= 60) return "high";
   if (minutesLeft <= 180) return "medium";
   return "low";
-}
-
-function normalizeToMidnightUTC(date: Date) {
-  const normalized = new Date(date);
-  normalized.setUTCHours(0, 0, 0, 0);
-  return normalized;
 }
 
 function minutesUntil(date: Date) {
@@ -104,12 +96,10 @@ async function buildPayload(
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getRequiredUserId();
+    if (!userId) {
+      return unauthorized();
     }
-
-    const userId = (session.user as { id: string }).id;
     const now = new Date();
 
     const user = await prisma.user.findUnique({
@@ -124,7 +114,7 @@ export async function GET() {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return notFound("User");
     }
 
     if (!user.browserNotificationsEnabled) {
@@ -348,10 +338,6 @@ export async function GET() {
       score: selectedCandidate.score,
     });
   } catch (error) {
-    console.error("GET /api/notifications/browser error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerError("GET /api/notifications/browser", error);
   }
 }
